@@ -315,14 +315,14 @@ namespace Attendance.Classes
                     ShiftData t = new ShiftData();
                     t.ShiftCode = dr["ShiftCode"].ToString();
                     t.ShiftDesc = dr["ShiftDesc"].ToString();
-
+                    t.ShiftSeq = Convert.ToInt32(dr["ShiftSeq"].ToString());
                     t.ShiftStart = (TimeSpan)dr["ShiftStart"];
                     t.ShiftEnd = (TimeSpan)dr["ShiftEnd"];                 
                     t.ShiftInFrom = (TimeSpan)dr["ShiftInFrom"];                   
                     t.ShiftInTo = (TimeSpan)dr["ShiftInTo"];                   
                     t.ShiftOutFrom = (TimeSpan)dr["ShiftOutFrom"];                   
                     t.ShiftOutTo = (TimeSpan)dr["ShiftOutTo"];
-
+                    t.NightFLG = Convert.ToBoolean(dr["NightFlg"]);
                     t.BreakHrs = Convert.ToInt32(dr["BreakHrs"]);
                     t.ShiftHrs = Convert.ToInt32(dr["ShiftHrs"]);
 
