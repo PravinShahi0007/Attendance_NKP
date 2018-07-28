@@ -201,6 +201,83 @@ namespace Attendance.Classes
             }
         }
 
+        /// <summary>
+        /// Get Data File from device
+        /// Type of the data file to be obtained 
+        /// 1. Attendance record data file 
+        /// 2. Fingerprint template data file 
+        /// 3. None 
+        /// 4. Operation record data file 
+        /// 5. User information data file 
+        /// 6. SMS data file 
+        /// 7. SMS and user relationship data file 
+        /// 8. Extended user information data file 
+        /// 9. Work code data file
+        /// FileName Name of the obtained data file 
+        /// </summary>
+        /// <param name="DataFlag"></param>
+        /// <param name="FileName"></param>
+
+
+        public bool GetDataFile(int DataFlag,string FileName,out string err)
+        {
+            err = string.Empty;
+            bool ret = false;
+            if(this._connected){
+                err = "Machine is not connected";
+                return ret;
+            }
+
+            ret = this.CZKEM1.GetDataFile(this.CZKEM1.MachineNumber, DataFlag, FileName);
+            return ret;
+
+        }
+
+        public bool ReadDataFile(int DataFlag, string FileName, string FilePath, out string err)
+        {
+            err = string.Empty;
+            bool ret = false;
+            if (this._connected)
+            {
+                err = "Machine is not connected";
+                return ret;
+            }
+            //pending
+            ret = this.CZKEM1.ReadFile(this.CZKEM1.MachineNumber,FileName,FilePath);
+            return ret;
+        }
+
+        public bool GetSDKVersion(out string version, out string err)
+        {
+            err = string.Empty;
+            version = string.Empty;
+            bool ret = false;
+            if (this._connected)
+            {
+                err = "Machine is not connected";
+                return ret;
+            }
+
+            ret = this.CZKEM1.GetSDKVersion(ref version);
+            return ret;
+        }
+
+        public bool GetSerialNumber(out string strSerialNo, out string err)
+        {
+            err = string.Empty;
+            strSerialNo = string.Empty;
+            bool ret = false;
+            if (this._connected)
+            {
+                err = "Machine is not connected";
+                return ret;
+            }
+
+            ret = this.CZKEM1.GetSerialNumber(this.CZKEM1.MachineNumber, out strSerialNo);
+            return ret;
+        }
+
+
         public void DisConnect (out string err)
         {
             err = string.Empty;
@@ -434,10 +511,10 @@ namespace Attendance.Classes
                     {
 
                     }
-                    else {
+                    else
+                    {
                         err = ex.ToString();
                     }
-                    
 
                     try
                     {
@@ -605,14 +682,17 @@ namespace Attendance.Classes
                         {
                             cmd.CommandText = "Insert into EmpBlocked (EmpUnqID,IPAdd,Blocked,BlockedDate,BlockedBy) Values (" +
                               "'" + tEmpUnqID + "','" + _ip + "',1,GetDate(),'" + Utils.User.GUserID + "')";
+                           
                         }
                         else
                         {
                             cmd.CommandText = "Update EmpBlocked Set Unblockeddt = GetDate(), UnblockedBy = '" + Utils.User.GUserID + "'" +
                               " Where EmpUnqID ='" + tEmpUnqID + "' And IPAdd = '" + _ip + "' And Unblockeddt is null " ;
                         }
-
+                        
+                        
                         cmd.ExecuteNonQuery();
+
                     }
 
                 }
@@ -691,7 +771,7 @@ namespace Attendance.Classes
             {
                 //this.CZKEM1.set_STR_CardNumber(0, emp.UserID);
                 this.CZKEM1.set_CardNumber(0,Convert.ToInt32(emp.CardNumber));
-                bool x = this.CZKEM1.SetUserInfo(_machineno, Convert.ToInt32(emp.UserID), "", "", 0,true);
+                bool x = this.CZKEM1.SetUserInfo(_machineno, Convert.ToInt32(emp.UserID), "", "", 0,emp.Enabled);
                 //this.CZKEM1.RefreshData(_machineno);
                 //this.CZKEM1.EnableDevice(_machineno, true);
                 return;
@@ -699,7 +779,7 @@ namespace Attendance.Classes
             
             if(this.CZKEM1.SetStrCardNumber(emp.CardNumber))
             {
-                if (this.CZKEM1.SSR_SetUserInfo(_machineno, emp.UserID, "", "", 0, true))
+                if (this.CZKEM1.SSR_SetUserInfo(_machineno, emp.UserID, "", "", 0, emp.Enabled))
                 {
 
                     //if it not used in Mess set user face and finger
@@ -710,6 +790,8 @@ namespace Attendance.Classes
                             if (!string.IsNullOrEmpty(emp.FaceTemp))
                             {
                                 bool x = this.CZKEM1.SetUserFaceStr(_machineno, emp.UserID, 50, emp.FaceTemp, emp.FaceLength);
+                                //user must set authenticate d type as face+RF
+
                             }
                         }
 
@@ -736,7 +818,7 @@ namespace Attendance.Classes
                             
                         }
 
-                        //this.CZKEM1.SetUserInfoEx(_machineno, Convert.ToInt32(emp.UserID), 146, 0);
+                        this.CZKEM1.SetUserInfoEx(_machineno, Convert.ToInt32(emp.UserID), 146, 0);
                     }
                 }
 
@@ -793,37 +875,42 @@ namespace Attendance.Classes
                 //if it not used in Mess set user face and finger
                 if (_messflg == false)
                 {
-                    if (_face)
-                    {
+                    //if (_face)
+                    //{
                         if (!string.IsNullOrEmpty(emp.FaceTemp))
                         {
                             this.CZKEM1.SetUserFaceStr(_machineno, emp.UserID, 50, emp.FaceTemp, emp.FaceLength);
                         }
-                    }
+                    //}
 
-                    if (_finger)
-                    {
-                        string sql = "Select EmpUnqID,idx,Tmpdata,[length] from EmpBioData " +
-                              " where [type] = 'FINGER' AND TMPDATA IS NOT NULL AND MACHINEIP = 'Master' and MachineNo = '9999' " +
-                              " and EmpUnqID = '" + emp.UserID + "'";
-
-                        DataSet ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
-                        bool hasrows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
-                        if (hasrows)
+                        if (!string.IsNullOrEmpty(emp.FingerTemp))
                         {
-
-                            foreach (DataRow dr in ds.Tables[0].Rows)
-                            {
-                                if (!string.IsNullOrEmpty(dr["TmpData"].ToString()))
-                                {
-                                    //'upload templates information to the device
-                                    this.CZKEM1.SetUserTmpExStr(_machineno, emp.UserID, Convert.ToInt32(dr["idx"]), 1, dr["TmpData"].ToString());  
-                                }
-                            }
+                            this.CZKEM1.SetUserTmpExStr(_machineno, emp.UserID, Convert.ToInt32(emp.FingerIndex), 1, emp.FingerTemp);  
                         }
-                    }
+
+                    //if (_finger)
+                    //{
+                        //string sql = "Select EmpUnqID,idx,Tmpdata,[length] from EmpBioData " +
+                        //      " where [type] = 'FINGER' AND TMPDATA IS NOT NULL AND MACHINEIP = 'Master' and MachineNo = '9999' " +
+                        //      " and EmpUnqID = '" + emp.UserID + "'";
+
+                        //DataSet ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
+                        //bool hasrows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
+                        //if (hasrows)
+                        //{
+
+                        //    foreach (DataRow dr in ds.Tables[0].Rows)
+                        //    {
+                        //        if (!string.IsNullOrEmpty(dr["TmpData"].ToString()))
+                        //        {
+                        //            'upload templates information to the device
+                        //            this.CZKEM1.SetUserTmpExStr(_machineno, emp.UserID, Convert.ToInt32(dr["idx"]), 1, dr["TmpData"].ToString());  
+                        //        }
+                        //    }
+                        //}
+                    //}
                     
-                    //this.CZKEM1.SetUserInfoEx(_machineno, Convert.ToInt32(emp.UserID), 146, 0);
+                    this.CZKEM1.SetUserInfoEx(_machineno, Convert.ToInt32(emp.UserID), 146, 0);
                 }
 
             }
@@ -896,7 +983,7 @@ namespace Attendance.Classes
                     if (!_istft)
                     {
                         this.CZKEM1.set_CardNumber(0, Convert.ToInt32(emp.CardNumber));
-                        this.CZKEM1.SetUserInfo(_machineno, Convert.ToInt32(emp.UserID), "", "", 0, true);
+                        this.CZKEM1.SetUserInfo(_machineno, Convert.ToInt32(emp.UserID), "", "", 0, emp.Enabled);
                         emp.err += "RFID Registered";
                     }
                     else
@@ -904,7 +991,7 @@ namespace Attendance.Classes
                         if (this.CZKEM1.SetStrCardNumber(emp.CardNumber))
                         {
                             emp.err += "RFID Registered,";
-                            this.CZKEM1.SSR_SetUserInfo(_machineno, emp.UserID, "", "", 0, true);
+                            this.CZKEM1.SSR_SetUserInfo(_machineno, emp.UserID, "", "", 0, emp.Enabled);
 
                             //if it not used in Mess set user face and finger
                             if (_messflg == false)
@@ -1132,6 +1219,24 @@ namespace Attendance.Classes
                         string allerr = string.Empty;
                         string terr = string.Empty;
                         string stcard = tmp.CardNumber;
+
+                        ////get if already blocked or not
+                        string sql = "SELECT  CASE WHEN EXISTS (Select * from MastEmp where EmpUnqID ='" + tmp.UserID + "')" +
+                                     "  THEN (select PunchingBlocked from MastEmp Where EmpUnqID = '" + tmp.UserID  + "' and compcode = '01') " +
+                                     "  ELSE 0  END AS PunchingBlocked ";
+
+                        int isBlocked = Convert.ToInt32(Utils.Helper.GetDescription(sql, Utils.Helper.constr));
+
+                        if (isBlocked == 1)
+                        {
+                            tmp.Enabled = false;
+                        }
+                        else
+                        {
+                            tmp.Enabled = true;
+                        }
+
+
                         //tmp.GetBioInfoFromDB(tmp.UserID);
                         if (!string.IsNullOrEmpty(tmp.CardNumber))
                         {
@@ -1160,6 +1265,146 @@ namespace Attendance.Classes
                 }
             }
 
+        }
+
+        
+        public void DownloadAllUsers_QuickReport(out string err , out List<UserBioInfo> tUsers)
+        {
+            err = string.Empty;
+            tUsers = new List<UserBioInfo>();
+
+            if (!_connected)
+            {
+                err = "Machine not connected..";
+                return;
+            }
+
+            int _prev=0, _useridInt=0, _bkpno=0, _isenable=0, _machineno=0;
+            string sUserID, sName, sPassword, sCardNumber;
+            bool bEnabled = false;
+            bool vRet = this.CZKEM1.ReadAllUserID(_machineno); // 'read all the user information to the memory
+            if (!vRet)
+            {
+                err = "Error : Can not read All UserID";
+                return;
+            }
+
+            bool istft = this.CZKEM1.IsTFTMachine(_machineno);
+
+            if (istft)
+            {
+                while(this.CZKEM1.SSR_GetAllUserInfo(_machineno,out sUserID, out sName, out sPassword,out _prev,out bEnabled))
+                {
+                    vRet = CZKEM1.GetStrCardNumber(out sCardNumber);
+                    
+                    UserBioInfo t = new UserBioInfo();
+                    t.UserID = sUserID;
+                    t.UserName = sName;
+                    t.CardNumber = sCardNumber;
+                    t.Previlege = _prev;
+                    t.Enabled = bEnabled;
+                    tUsers.Add(t);
+                }
+            }
+            else
+            {
+                while (this.CZKEM1.GetAllUserID(_machineno, ref _useridInt, ref _machineno, ref _bkpno, ref _prev, ref _isenable))
+                {
+                    UserBioInfo t = new UserBioInfo();
+                    vRet = CZKEM1.GetStrCardNumber(out sCardNumber);
+                    
+                    t.UserID = Convert.ToString(_useridInt);
+                    t.Previlege = _prev;
+                    t.CardNumber = sCardNumber;
+                    t.Enabled = (_isenable == 1 ? true : false);
+                    tUsers.Add(t);
+                }
+            }
+    
+
+
+            
+            
+
+        }
+
+        public void Get_StatusInfo_Users(out int usercount,out int usercapacity, out string err)
+        {
+            err = string.Empty;
+            usercount = 0;
+            usercapacity = 0;
+
+            if (!_connected)
+            {
+                err = "Machine not connected..";
+                return;
+            }
+            bool istft = this.CZKEM1.IsTFTMachine(_machineno );
+            this.CZKEM1.GetDeviceStatus(_machineno,2,ref usercount);
+            this.CZKEM1.GetDeviceStatus(_machineno, 8, ref usercapacity);
+        }
+
+        public void Get_StatusInfo_Face(out int facecount, out int facecapacity, out string err)
+        {
+            err = string.Empty;
+            facecount = 0;
+            facecapacity = 0;
+            
+            if (!_connected)
+            {
+                err = "Machine not connected..";
+                return;
+            }
+            bool istft = this.CZKEM1.IsTFTMachine(_machineno);
+
+            if (istft)
+            {
+                this.CZKEM1.GetDeviceStatus(_machineno, 21, ref facecount);
+                this.CZKEM1.GetDeviceStatus(_machineno, 22, ref facecapacity);
+            }
+            
+        }
+
+        public void Get_StatusInfo_Finger(out int fingercount, out int fingercapacity, out string err)
+        {
+            err = string.Empty;
+            fingercount = 0;
+            fingercapacity = 0;
+
+            if (!_connected)
+            {
+                err = "Machine not connected..";
+                return;
+            }
+            bool istft = this.CZKEM1.IsTFTMachine(_machineno);
+
+            if (istft)
+            {
+                this.CZKEM1.GetDeviceStatus(_machineno, 3, ref fingercount);
+                this.CZKEM1.GetDeviceStatus(_machineno, 7, ref fingercapacity);
+            }
+
+        }
+
+        public bool Set_MachineIP(string currentip , string newip, out string err)
+        {
+            err = string.Empty;
+            bool result = false;
+
+
+            if (!_connected)
+            {
+                err = "Machine not connected..";
+                return false;
+            }
+            bool istft = this.CZKEM1.IsTFTMachine(_machineno);
+
+            if (istft)
+            {
+                result = this.CZKEM1.SetDeviceIP(_machineno, newip);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -1597,19 +1842,21 @@ namespace Attendance.Classes
             //    }
             //}
 
-            //this.CZKEM1.EnableDevice(_machineno, false);
+            this.CZKEM1.EnableDevice(_machineno, false);
+
             string tmpuser = string.Empty, tmppass = string.Empty;
             int tmppre = 0;
             bool tmpenable = false;
 
+            
+
             if (!_istft)
             {
-
                 if (this.CZKEM1.GetUserInfo(_machineno, Convert.ToInt32(tEmpUnqID), ref tmpuser, ref tmppass, ref tmppre, ref tmpenable))
                 {
                     this.CZKEM1.DeleteEnrollData(_machineno, Convert.ToInt32(tEmpUnqID), _machineno, 0);
-                    this.StoreHistoryinDB(tEmpUnqID, false);  
-                }             
+                    StoreHistoryinDB(tEmpUnqID, false);
+                }          
             }
             else
             {
@@ -1619,11 +1866,12 @@ namespace Attendance.Classes
                     //this.CZKEM1.DeleteEnrollData(_machineno, Convert.ToInt32(tEmpUnqID), _machineno, 0);
                     this.CZKEM1.SSR_DeleteEnrollDataExt(_machineno, tEmpUnqID, 12);
                     this.CZKEM1.DelUserFace(_machineno, tEmpUnqID, 50);
-                    this.StoreHistoryinDB(tEmpUnqID, false);  
-                }                               
+
+                    StoreHistoryinDB(tEmpUnqID, false);
+                }
             }
 
-                  
+                 
             //this.CZKEM1.RefreshData(_machineno);
             //this.CZKEM1.EnableDevice(_machineno, true); 
         }
@@ -1665,34 +1913,33 @@ namespace Attendance.Classes
                 //store registration info in db....
                 if (string.IsNullOrEmpty(emp.err))
                 {
-                    StoreHistoryinDB(emp.UserID, false);
+                    
                     if (!_istft)
                     {
                         string tmpuser = string.Empty, tmppass = string.Empty;
-                        int tmppre = 0;
+                        int tmppre = 0 ;
                         bool tmpenable = false;
-                        
+
                         if (this.CZKEM1.GetUserInfo(_machineno, Convert.ToInt32(emp.UserID), ref tmpuser, ref tmppass, ref tmppre, ref tmpenable))
                         {
                             this.CZKEM1.DeleteEnrollData(_machineno, Convert.ToInt32(emp.UserID), _machineno, 0);
-                            this.StoreHistoryinDB(emp.UserID, false);  
+                            StoreHistoryinDB(emp.UserID, false);
                         }
-
-                        
                     }
                     else
                     {
+                       
                         string tmpuser = string.Empty, tmppass = string.Empty;
-                        int tmppre = 0;
+                        int tmppre = 0 ;
                         bool tmpenable = false;
 
-                        if (this.CZKEM1.SSR_GetUserInfo(_machineno, emp.UserID, out tmpuser, out tmppass, out tmppre, out tmpenable))
+                        if(this.CZKEM1.SSR_GetUserInfo(_machineno, emp.UserID,out tmpuser, out tmppass, out tmppre, out tmpenable))
                         {
                             //this.CZKEM1.SSR_DeleteEnrollData(_machineno, emp.UserID, 0);
                             //this.CZKEM1.DeleteEnrollData(_machineno, Convert.ToInt32(emp.UserID), _machineno, 0);
                             this.CZKEM1.SSR_DeleteEnrollDataExt(_machineno, emp.UserID, 12);
                             this.CZKEM1.DelUserFace(_machineno, emp.UserID, 50);
-                            this.StoreHistoryinDB(emp.UserID, false);  
+                            StoreHistoryinDB(emp.UserID, false);
                         }
                         
                     }
@@ -1724,6 +1971,21 @@ namespace Attendance.Classes
                 return;
             }
 
+            if (Utils.User.GUserID != "SERVER")
+            {
+                UserBioInfo emp = new UserBioInfo() ;
+                
+                emp.SetUserInfoForMachine(tEmpUnqID);
+
+                //check user rights for the wrkgrp
+                //'if not move next emp
+                if (!Globals.GetWrkGrpRights(625, emp.WrkGrp, emp.UserID))
+                {
+                    err = "you are not authorised..";
+                    return;
+                }                
+            }
+            
             //simply call delete
             this.DeleteUser(tEmpUnqID, out err);
             this.StoreBlockHistory(tEmpUnqID,true);
@@ -1743,6 +2005,22 @@ namespace Attendance.Classes
                 err = "UserID is required..";
                 return;
             }
+
+            //if (Utils.User.GUserID != "SERVER")
+            //{
+            //    UserBioInfo emp = new UserBioInfo();
+
+            //    emp.SetUserInfoForMachine(tEmpUnqID);
+
+            //    //check user rights for the wrkgrp
+            //    //'if not move next emp
+            //    if (!Globals.GetWrkGrpRights(670, emp.WrkGrp, emp.UserID))
+            //    {
+            //        err = "you are not authorised..";
+            //        return;
+            //    }
+            //}
+
 
             //simply call register
             this.Register(tEmpUnqID, out err);
@@ -2381,10 +2659,10 @@ namespace Attendance.Classes
                         foreach (DataRow dr in ds.Tables[0].Rows)
                         {
                             string tEmpUnqID = dr["EmpUnqID"].ToString();
+
                             string tmpuser2 = string.Empty, tmppass2 = string.Empty;
                             int tmppre2 = 0;
                             bool tmpenable2 = false;
-
 
                             if (!_istft)
                             {
@@ -2392,6 +2670,7 @@ namespace Attendance.Classes
                             }
                             else
                             {
+
                                 if (this.CZKEM1.SSR_GetUserInfo(_machineno, tEmpUnqID, out tmpuser2, out tmppass2, out tmppre2, out tmpenable2))
                                 {
                                     if (tmppre2 != 3)
@@ -2399,9 +2678,9 @@ namespace Attendance.Classes
                                         //this.CZKEM1.SSR_DeleteEnrollData(_machineno, tEmpUnqID, 0);
                                         //this.CZKEM1.DeleteEnrollData(_machineno, Convert.ToInt32(emp.UserID), _machineno, 0);
                                         this.CZKEM1.SSR_DeleteEnrollDataExt(_machineno, tEmpUnqID, 12);
-                                        this.CZKEM1.DelUserFace(_machineno, tEmpUnqID, 50);
+                                        this.CZKEM1.DelUserFace(_machineno, tEmpUnqID, 50);   
                                     }
-
+                                                                     
                                 }
                                 
                                 //this.CZKEM1.SSR_DeleteEnrollData(_machineno, tEmpUnqID, 0);                                

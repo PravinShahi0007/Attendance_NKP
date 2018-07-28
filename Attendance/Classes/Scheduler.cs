@@ -16,13 +16,6 @@ using Quartz.Impl.Matchers;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Diagnostics;
-using System.Net.Mail;
-using Attendance.RS2005;
-using Attendance.RE2005;
-//using Microsoft.ReportingServices.Interfaces;
-using ParameterValue = Attendance.RE2005.ParameterValue;
-using Warning = Attendance.RE2005.Warning;
-
 
 namespace Attendance.Classes
 {
@@ -113,7 +106,7 @@ namespace Attendance.Classes
                 if (_ShutDown)
                     return;
 
-                await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(5));
                 try
                 {
                     await mqtc.ConnectAsync(clientoptions);
@@ -151,8 +144,6 @@ namespace Attendance.Classes
         {   
            var properties = new System.Collections.Specialized.NameValueCollection();
             properties["quartz.threadPool.threadCount"] = "20";
-            properties["org.quartz.scheduler.instanceName"] = "QuartzSchedulerJSAW";
-            properties["org.quartz.scheduler.instanceId"] = "NON_CLUSTERED_JSAW";
 
             StdSchedulerFactory schedulerFactory = new StdSchedulerFactory(properties); //getting the scheduler factory
             scheduler = schedulerFactory.GetScheduler();//getting the instance
@@ -178,7 +169,6 @@ namespace Attendance.Classes
             RegSchedule_AutoArrival();
             RegSchedule_AutoProcess();
             RegSchedule_DownloadPunch();
-            RegSchedule_AutoMail();
             _ShutDown = false;  
         }
 
@@ -277,7 +267,7 @@ namespace Attendance.Classes
                     Publish(tMsg);
                     return;
                 }
-                int t1 = -3;
+                int t1 = -5;
                 foreach (string wrk in tWrkGrp)
                 {
                     t1 += 1;
@@ -299,7 +289,6 @@ namespace Attendance.Classes
                             CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes + t1)
                             .WithMisfireHandlingInstructionFireAndProceed()
                             )
-                        
                         .Build();
 
                     // Tell quartz to schedule the job using our trigger
@@ -312,8 +301,6 @@ namespace Attendance.Classes
                     Publish(tMsg);
 
                 }
-
-
             }
         }
 
@@ -448,53 +435,6 @@ namespace Attendance.Classes
                 }
             }
         }
-
-        public void RegSchedule_AutoMail()
-        {
-            string cnerr = string.Empty;
-
-            DataSet ds = Utils.Helper.GetData("Select * from AutoMailTime Order by SchTime", Utils.Helper.constr, out cnerr);
-
-            bool hasrow = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
-            if (hasrow)
-            {
-                foreach (DataRow dr in ds.Tables[0].Rows)
-                {
-                    TimeSpan tTime = (TimeSpan)dr["SchTime"];
-                    string ReportPath = dr["ReportPath"].ToString();
-                    string ReportType = dr["ReportType"].ToString();
-
-                    
-
-                    string jobid5 = "Job_AutoMail_" + tTime.Hours.ToString() + tTime.Minutes.ToString();
-                    string triggerid5 = "Trigger_AutoMail_" + tTime.Hours.ToString() + tTime.Minutes.ToString();
-                    // define the job and tie it to our HelloJob class
-                    IJobDetail job5 = JobBuilder.Create<AutoMail>()
-                        .WithIdentity(jobid5, "Job_AutoMail")
-                        .WithDescription("Auto Scheduled Mail " + tTime.ToString() + " " + ReportType )
-                        .UsingJobData("ReportPath", ReportPath)
-                        .UsingJobData("ReportType", ReportType)
-                        .Build();
-
-                    // Trigger the job to run now
-                    ITrigger trigger5 = TriggerBuilder.Create()
-                        .WithIdentity(triggerid5, "TRG_AutoMail")
-                        .StartNow()
-                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes))
-                        .Build();
-
-                    // Tell quartz to schedule the job using our trigger
-                    scheduler.ScheduleJob(job5, trigger5);
-                    ServerMsg tMsg = new ServerMsg();
-                    tMsg.MsgType = "Job Building";
-                    tMsg.MsgTime = DateTime.Now;
-                    tMsg.Message = string.Format("Building Job Job ID : {0} And Trigger ID : {1}", jobid5, triggerid5);
-                    Scheduler.Publish(tMsg);
-
-                }
-            }
-        }
-
 
         public class AutoDeleteLeftEmp : IJob
         {
@@ -669,7 +609,7 @@ namespace Attendance.Classes
                                 tMsg.MsgType = "Auto Download";
                                 tMsg.Message = ip + "->Error :" + err;
                                 Scheduler.Publish(tMsg);
-                                //continue;
+                                continue;
                             }
 
 
@@ -698,6 +638,171 @@ namespace Attendance.Classes
                 }
             }
         }
+
+
+        public class AutoDownLoadTask : IJob
+        {
+            public void Execute(IJobExecutionContext context)
+            {
+                if (_ShutDown)
+                {
+                    return;
+                }
+
+                bool hasrow = Globals.G_DsMachine.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
+                if (hasrow)
+                {
+                    string filenm = "AutoErrLogTask_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".txt";
+                    string fullpath = Path.Combine(Errfilepath, filenm);
+
+                    _StatusAutoDownload = true;
+
+                    // Define the cancellation token.
+                    CancellationTokenSource source = new CancellationTokenSource();
+                    CancellationToken token = source.Token;
+                    List<Task> tasks = new List<Task>();
+                    TaskFactory factory = new TaskFactory(token);
+                    foreach (DataRow dr in Globals.G_DsMachine.Tables[0].Rows)
+                    {
+                        string ip = dr["MachineIP"].ToString();
+                        string ioflg = dr["IOFLG"].ToString();
+
+                        tasks.Add(factory.StartNew(() => download(ip, ioflg,token)));
+                        Thread.Sleep(100);
+                    }
+
+                    try
+                    {
+                        Task.WaitAll(tasks.ToArray());
+                                                
+                    }
+                    catch (AggregateException ae)
+                    {
+                       
+                        foreach (Exception e in ae.InnerExceptions)
+                        {
+                            if (e is TaskCanceledException)
+                            {
+                                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                                {
+                                    file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-" + ((TaskCanceledException)e).Message );
+                                }   
+ 
+                            }else
+                            {
+                                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                                {
+                                    file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-" + e.GetType().Name );
+                                }
+                            }                             
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                        {
+                            file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-" + ex.ToString());
+                        }
+                    }
+                    finally
+                    {
+                        source.Cancel();
+                        source.Dispose();
+                    }
+
+
+                    _StatusAutoDownload = false;
+                }
+            }
+
+            private static void download(string ip, string ioflg,CancellationToken token)
+            {
+                try
+                {
+
+                    ServerMsg tMsg = new ServerMsg();
+                    tMsg.MsgTime = DateTime.Now;
+                    tMsg.MsgType = "Auto Download";
+                    tMsg.Message = ip;
+                    Scheduler.Publish(tMsg);
+
+
+                    string err = string.Empty;
+                    string filenm = "AutoErrLog_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + "_" + ip + ".txt";
+                    string fullpath = Path.Combine(Errfilepath, filenm);
+
+                    clsMachine m = new clsMachine(ip, ioflg);
+                    m.Connect(out err);
+                    if (!string.IsNullOrEmpty(err))
+                    {
+                        //write primary errors
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                        {
+                            file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-[" + ip + "]-" + err);
+                        }
+
+                        tMsg.MsgTime = DateTime.Now;
+                        tMsg.MsgType = "Auto Download";
+                        tMsg.Message = ip;
+                        Scheduler.Publish(tMsg);
+                        return;
+                    }
+                    err = string.Empty;
+
+                    //if (token.IsCancellationRequested)
+                    //{
+                    //    m.DisConnect(out err);
+                    //    //token.ThrowIfCancellationRequested();
+                    //    return;
+                    //}
+
+                    List<AttdLog> tempattd = new List<AttdLog>();
+                    m.GetAttdRec(out tempattd, out err);
+                    if (!string.IsNullOrEmpty(err))
+                    {
+                        //write errlog
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                        {
+                            file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-[" + ip + "]-" + err);
+                        }
+
+                        tMsg.MsgTime = DateTime.Now;
+                        tMsg.MsgType = "Auto Download";
+                        tMsg.Message = ip + "->Error :" + err;
+                        Scheduler.Publish(tMsg);
+                        if (err.Contains("ErrorCode=-2"))
+                            m.Restart(out err);
+
+
+                        return;
+                    }
+
+
+                    filenm = "AutoDownload_Log_" + DateTime.Now.ToString("yyyyMMdd") + "_" + ip + ".txt";
+                    fullpath = Path.Combine(Loginfopath, filenm);
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                    {
+                        file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-[" + ip + "]-Completed");
+                    }
+
+                    m.DisConnect(out err);
+                }
+                catch (Exception ex)
+                {
+                    string filenm = "AutoErrLog_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + "_" + ip + ".txt";
+                    string fullpath = Path.Combine(Errfilepath, filenm);
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                    {
+                        file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDownload-[" + ip + "]-" + ex.ToString());
+                    }
+                }
+
+            }
+
+        }
+
+
+        
 
         public class AutoTimeSet : IJob
         {
@@ -743,6 +848,7 @@ namespace Attendance.Classes
                             {
                                 file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoTimeSet-[" + ip + "]-" + err);
                             }
+
                             tMsg.MsgTime = DateTime.Now;
                             tMsg.MsgType = "Auto Time Set";
                             tMsg.Message = ip + "->Error :" + err;
@@ -760,10 +866,18 @@ namespace Attendance.Classes
                             {
                                 file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoTimeSet-[" + ip + "]-" + err);
                             }
+                            tMsg.MsgTime = DateTime.Now;
+                            tMsg.MsgType = "Auto Time Set";
+                            tMsg.Message = ip + "->Error :" + err;
+                            Scheduler.Publish(tMsg);
                             continue;
                         }
 
                         m.DisConnect(out err);
+                        tMsg.MsgTime = DateTime.Now;
+                        tMsg.MsgType = "Auto Time Set";
+                        tMsg.Message = ip + "->Completed";
+                        Scheduler.Publish(tMsg);
 
                         filenm = "AutoTimeSet_Log_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
                         fullpath = Path.Combine(Loginfopath, filenm);
@@ -796,10 +910,8 @@ namespace Attendance.Classes
                 
                 
                 string tsql = "Select EmpUnqID from MastEmp where CompCode = '01' and WrkGrp = '" + tWrkGrp + "' And Active = 1";
-                
-                DateTime ToDt = DateTime.Now;
-                DateTime FromDt = DateTime.Now.AddDays(-2);
-
+                DateTime ToDt = DateTime.Now.Date;
+                DateTime FromDt = DateTime.Now.Date.AddDays(-1);
                 string cnerr = string.Empty;
 
                 DataSet DsEmp = Utils.Helper.GetData(tsql, Utils.Helper.constr,out cnerr);
@@ -837,8 +949,6 @@ namespace Attendance.Classes
                             return;
                         }
 
-                        
-
                         _StatusAutoProcess = true;
                         
                         string tEmpUnqID = dr["EmpUnqID"].ToString();
@@ -856,13 +966,11 @@ namespace Attendance.Classes
 
                         if (!string.IsNullOrEmpty(err))
                         {
-                            
-
                             string filenm = "AutoProcess_Error_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
                             string fullpath = Path.Combine(Errfilepath, filenm);
                             using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
                             {
-                                file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoProcess-[" + tEmpUnqID + "]- From :" + FromDt.ToString("dd/MM/yy") + "-" + ToDt.ToString("dd/MM/yy") + " " + err);
+                                file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoProcess-[" + tEmpUnqID + "]-" + err);
                             }
 
                             tMsg.MsgTime = DateTime.Now;
@@ -986,230 +1094,6 @@ namespace Attendance.Classes
             }
         }
 
-        //iStatefuljob will help to preserv jobdatamap after execution
-        [PersistJobDataAfterExecution]
-        public class AutoMail : IJob
-        {
-            #region requiredfunctions
-
-
-            public static void Email(string to,
-                                 string cc,
-                                 string bcc,
-                                 string body,
-                                 string subject,
-                                 string fromAddress,
-                                 string fromDisplay,
-                                 string credentialUser,
-                                 string credentialPassword,
-                                 string subscriptionid,
-                                 params MailAttachment[] attachments)
-            {
-                string host = Globals.G_SmtpHostIP;
-                //body = "";// UpgradeEmailFormat(body);
-                try
-                {
-                    MailMessage mail = new MailMessage();
-                    mail.Body = body;
-                    mail.IsBodyHtml = true;
-
-                    string[] mailto = to.Split(';');
-                    string[] mailcc = cc.Split(';');
-                    string[] mailbcc = bcc.Split(';');
-
-
-                    foreach (string tto in mailto)
-                    {
-                        if (!string.IsNullOrWhiteSpace(tto))
-                        {
-                            mail.To.Add(new MailAddress(tto));
-                        }
-
-                    }
-
-                    foreach (string tcc in mailcc)
-                    {
-                        if (!string.IsNullOrWhiteSpace(tcc))
-                        {
-                            mail.CC.Add(new MailAddress(tcc));
-                        }
-
-                    }
-
-                    foreach (string tbcc in mailbcc)
-                    {
-                        if (!string.IsNullOrWhiteSpace(tbcc))
-                        {
-                            mail.Bcc.Add(new MailAddress(tbcc));
-                        }
-
-                    }
-
-                    if (mailto.Count() <= 0 && to.Trim().Length > 0)
-                    {
-                        mail.To.Add(new MailAddress(to));
-                    }
-
-                    if (mailcc.Count() <= 0 && cc.Trim().Length > 0)
-                    {
-                        mail.CC.Add(new MailAddress(cc));
-                    }
-
-                    if (mailbcc.Count() <= 0 && bcc.Trim().Length > 0)
-                    {
-                        mail.Bcc.Add(new MailAddress(bcc));
-                    }
-
-                    mail.From = new MailAddress(fromAddress, fromDisplay, Encoding.UTF8);
-                    mail.Subject = subject;
-                    mail.SubjectEncoding = Encoding.UTF8;
-                    mail.Priority = MailPriority.Normal;
-                    foreach (MailAttachment ma in attachments)
-                    {
-                        mail.Attachments.Add(ma.File);
-                    }
-                    SmtpClient smtp = new SmtpClient();
-                    smtp.Credentials = new System.Net.NetworkCredential(credentialUser, credentialPassword);
-                    smtp.Host = host;
-                    smtp.Send(mail);
-                }
-                catch (Exception ex)
-                {
-                    StringBuilder sb = new StringBuilder(1024);
-                    sb.Append("\nSubScriptionID:" + subscriptionid);
-                    sb.Append("\nTo:" + to);
-                    sb.Append("\nCC:" + cc);
-                    sb.Append("\nBCC:" + bcc);
-                    sb.Append("\nbody:" + body);
-                    sb.Append("\nsubject:" + subject);
-                    sb.Append("\nfromAddress:" + fromAddress);
-                    sb.Append("\nfromDisplay:" + fromDisplay);
-
-                   
-                }
-            }
-
-
-
-            #endregion
-
-
-            public void Execute(IJobExecutionContext context)
-            {
-
-                JobKey key = context.JobDetail.Key;
-                JobDataMap dataMap = context.JobDetail.JobDataMap;
-
-                string ReportPath = dataMap.GetString("ReportPath");
-                string ReportType = dataMap.GetString("ReportType");
-
-                
-                ServerMsg tMsg = new ServerMsg();
-
-                if (string.IsNullOrEmpty(ReportPath) || string.IsNullOrEmpty(ReportType))
-                {
-                    tMsg.MsgTime = DateTime.Now;
-                    tMsg.MsgType = "Automail Report Error ";
-                    tMsg.Message = "did not get Report Type, Report Path";
-                    Scheduler.Publish(tMsg);
-                    return;
-                }
-
-                string strsubscr  = string.Empty;
-
-                if (ReportType.ToUpper().Contains("ARR"))
-                    strsubscr = "Select * from AutoMailSubScription where Arrival = 1 Order By Subscriptionid ";
-                else
-                    strsubscr = "Select * from AutoMailSubScription where 1 = 1 Order By Subscriptionid";
-
-                string cnerr = string.Empty;
-                DataSet ds = Utils.Helper.GetData(strsubscr, Utils.Helper.constr, out cnerr);
-                bool hasrow = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
-                if (hasrow)
-                {
-                    foreach (DataRow dr in ds.Tables[0].Rows)
-                    {
-                        System.Net.NetworkCredential clientCredentials = new System.Net.NetworkCredential(Globals.G_NetworkUser, Globals.G_NetworkPass, Globals.G_NetworkDomain);
-                        Attendance.RS2005.ReportingService2010 rs = new Attendance.RS2005.ReportingService2010();
-                        rs.Credentials = clientCredentials;
-
-                        //rs.Url = "http://172.16.12.47/reportserver/reportservice2010.asmx";
-                        rs.Url = Globals.G_ReportServiceURL;
-
-                        Attendance.RE2005.ReportExecutionService rsExec = new Attendance.RE2005.ReportExecutionService();
-                        rsExec.Credentials = clientCredentials;
-                        //rsExec.Url = "http://172.16.12.47/reportserver/reportexecution2005.asmx";
-                        rsExec.Url = Globals.G_ReportSerExeUrl;
-                        string historyID = null;
-                        
-                        string deviceInfo = null;
-                        string extension;
-                        string encoding;
-                        string mimeType;
-                        Attendance.RE2005.Warning[] warnings = null;
-                        string[] streamIDs = null;
-                        string format = "EXCEL";
-                        Byte[] results;
-                        string subscrid = dr["SubScriptionID"].ToString();
-                        string attchnamePrefix = System.DateTime.Now.ToString("yyyyMMdd_HHmm_"); 
-                        
-                        if(ReportType.ToUpper().Contains("PERF"))
-                        {
-                            
-                            DateTime RptDate = System.DateTime.Now;
-                            RptDate = RptDate.AddDays(-1);
-                            
-                            rsExec.LoadReport(ReportPath, historyID);
-                            ParameterValue[] executionParams1 = new ParameterValue[3];
-                            executionParams1[0] = new ParameterValue();
-                            executionParams1[0].Name = "WrkGrp";
-                            executionParams1[0].Value = dr["Param1WrkGrp"].ToString();
-
-                            executionParams1[1] = new ParameterValue();
-                            executionParams1[1].Name = "SubScriptionID";
-                            executionParams1[1].Value = dr["SubScriptionID"].ToString();
-
-                            executionParams1[2] = new ParameterValue();
-                            executionParams1[2].Name = "tDate";
-                            executionParams1[2].Value = RptDate.ToString("yyyy-MM-dd");
-                            rsExec.SetExecutionParameters(executionParams1, "en-us");
-                            string substr2 = "JSAW-" + dr["Param1WrkGrp"].ToString() + "-ID-" + dr["SubScriptionID"].ToString() + " : Daily Performance Report For " + RptDate.ToString("dd-MMM");
-                            results = rsExec.Render(format, deviceInfo, out extension, out mimeType, out encoding, out warnings, out streamIDs);
-                            
-                            MailAttachment m1 = new MailAttachment(results, attchnamePrefix + "Daily Performance Report.xls");
-                            Email(dr["EmailTo"].ToString(), dr["EmailCopy"].ToString(), dr["BCCTo"].ToString(),
-                                "Daily Performance Report", substr2, Globals.G_DefaultMailID, "Attendance System", "", "", subscrid, m1);
-                        }
-                        else if(ReportType.ToUpper().Contains("ARRIVAL"))
-                        {
-                            DateTime RptDate = System.DateTime.Now;                            
-
-                            rsExec.LoadReport(ReportPath, historyID);
-                            ParameterValue[] executionParams1 = new ParameterValue[3];
-                            executionParams1[0] = new ParameterValue();
-                            executionParams1[0].Name = "WrkGrp";
-                            executionParams1[0].Value = dr["Param1WrkGrp"].ToString();
-
-                            executionParams1[1] = new ParameterValue();
-                            executionParams1[1].Name = "deptstat";
-                            executionParams1[1].Value = dr["SubScriptionID"].ToString();
-
-                            
-                            rsExec.SetExecutionParameters(executionParams1, "en-us");
-                            string substr2 = "JSAW-" + dr["Param1WrkGrp"].ToString() + "-ID-" + dr["SubScriptionID"].ToString() + " : Daily Arrival Report For " + RptDate.ToString("dd-MMM");
-                            results = rsExec.Render(format, deviceInfo, out extension, out mimeType, out encoding, out warnings, out streamIDs);
-                            MailAttachment m1 = new MailAttachment(results, attchnamePrefix + "Daily Arrival Report.xls");
-                            Email(dr["EmailTo"].ToString(), dr["EmailCopy"].ToString(), dr["BCCTo"].ToString(),
-                                "Daily Arrival Report ", substr2, Globals.G_DefaultMailID, "Attendance System", "", "", subscrid, m1);
-                        }
-
-                    }
-                }
-            }
-        }
-
-
-
         public class WorkerProcess : IJob
         {
             public void Execute(IJobExecutionContext context)
@@ -1225,12 +1109,8 @@ namespace Attendance.Classes
                 tMsg.Message = "HeartBeat";
                 Scheduler.Publish(tMsg);
 
-                
-                if (_StatusWorker == false)
-                {
-
-
-
+                if(_StatusWorker == false)
+                { 
                     string cnerr = string.Empty;
                     string sql = "Select top 200 w.* from attdworker w where w.doneflg = 0 Order by MsgId desc" ;
                     DataSet DsEmp = Utils.Helper.GetData(sql, Utils.Helper.constr,out cnerr);
@@ -1244,7 +1124,7 @@ namespace Attendance.Classes
                     if (hasRows)
                     {
 
-                       
+                        
 
                         foreach (DataRow dr in DsEmp.Tables[0].Rows)
                         {
@@ -1273,54 +1153,206 @@ namespace Attendance.Classes
                             string err = string.Empty;
                             int tres = 0;
                             clsProcess pro = new clsProcess();
-                            pro.AttdProcess(tEmpUnqID, tFromDt, tToDt, out tres, out err);
 
-                            if (!string.IsNullOrEmpty(err))
-                            {
-                                
+                            string ProType = dr["ProcessType"].ToString();
 
-                                string filenm = "AutoProcess_Error_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
-                                string fullpath = Path.Combine(Errfilepath, filenm);
-                                using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
-                                {
-                                    file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoProcess-[" + tEmpUnqID + "]-" + err);
-                                }
-
-                                tMsg.MsgTime = DateTime.Now;
-                                tMsg.MsgType = "Auto Process";
-                                tMsg.Message = tEmpUnqID + ": Error=>" + err;
-                                Scheduler.Publish(tMsg);
-                            }
+                            if (ProType == "ATTD")
+                                pro.AttdProcess(tEmpUnqID, tFromDt, tToDt, out tres, out err);
+                            else if (ProType == "LUNCHINOUT")
+                                pro.LunchInOutProcess(tEmpUnqID, tFromDt, tToDt, out tres);
+                            else if (ProType == "MESS")
+                                pro.LunchProcess(tEmpUnqID, tFromDt, tToDt, out tres);
                             else
-                            {
-                                using(SqlConnection cn = new SqlConnection(Utils.Helper.constr))
+                                pro.AttdProcess(tEmpUnqID, tFromDt, tToDt, out tres, out err);
+                            
+                                if (!string.IsNullOrEmpty(err))
                                 {
-                                    try{
-                                        cn.Open();
-                                        using(SqlCommand cmd = new SqlCommand())
-                                        {
-                                            cmd.Connection = cn;
-                                            string upsql = "Update AttdWorker set doneflg = 1 , pushflg = 1,workerid ='Server' where msgid = '" + MsgID +"'";
-                                            cmd.CommandText = upsql;
-                                            cmd.ExecuteNonQuery();
-                                        }
-                                    }catch{
 
+
+                                    string filenm = "AutoProcess_Error_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+                                    string fullpath = Path.Combine(Errfilepath, filenm);
+                                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                                    {
+                                        file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoProcess-[" + tEmpUnqID + "]-" + err);
+                                    }
+
+                                    tMsg.MsgTime = DateTime.Now;
+                                    tMsg.MsgType = "Auto Process";
+                                    tMsg.Message = tEmpUnqID + ": Error=>" + err;
+                                    Scheduler.Publish(tMsg);
+                                }
+                                else
+                                {
+                                    using (SqlConnection cn = new SqlConnection(Utils.Helper.constr))
+                                    {
+                                        try
+                                        {
+                                            cn.Open();
+                                            using (SqlCommand cmd = new SqlCommand())
+                                            {
+                                                cmd.Connection = cn;
+                                                string upsql = "Update AttdWorker set doneflg = 1 , pushflg = 1,workerid ='Server' where msgid = '" + MsgID + "'";
+                                                cmd.CommandText = upsql;
+                                                cmd.ExecuteNonQuery();
+                                            }
+                                        }
+                                        catch
+                                        {
+
+                                        }
                                     }
                                 }
-                            }
                         }
 
                         _StatusWorker = false;
 
                     }
+                    else
+                    {
+                        //check if any pending machine operation if yes do it....
+                        #region newmachinejob
+                        DataSet ds = Utils.Helper.GetData("Select top 10 * from MastMachineUserOperation where DoneFlg = 0 order by MachineIP ", Utils.Helper.constr);
+                        hasRows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
+                        if (hasRows)
+                        {
+                            foreach (DataRow dr in ds.Tables[0].Rows)
+                            {
 
+                                if (_ShutDown)
+                                {
+                                    _StatusWorker = false;
+                                    return;
+                                }
+
+                                _StatusWorker = true;
+
+                                string ip = dr["MachineIP"].ToString();
+                                string err = string.Empty;
+                                clsMachine m = new clsMachine(ip, dr["IOFLG"].ToString());
+                                m.Connect(out err);
+                                if (string.IsNullOrEmpty(err))
+                                {
+
+                                    tMsg.MsgTime = DateTime.Now;
+                                    tMsg.MsgType = "Machine Operation->";
+                                    tMsg.Message = "Performing : " + dr["Operation"].ToString() + " : EmpUnqID=>" + dr["EmpUnqID"].ToString() + "->" + dr["MachineIP"].ToString();
+                                    Scheduler.Publish(tMsg);
+
+                                    m.EnableDevice(false);
+                                    #region machineoperation
+                                    switch (dr["Operation"].ToString())
+                                    {
+                                        case "BLOCK":
+                                            m.BlockUser(dr["EmpUnqID"].ToString(), out err);
+                                            break;
+                                        case "UNBLOCK":
+                                            m.UnBlockUser(dr["EmpUnqID"].ToString(), out err);
+                                            break;
+                                        case "DELETE":
+                                            m.DeleteUser(dr["EmpUnqID"].ToString(), out err);
+                                            break;
+                                        case "REGISTER":
+                                            m.Register(dr["EmpUnqID"].ToString(), out err);
+                                            break;
+                                        case "DOWNLOADTEMP":
+                                            m.DownloadTemplate(dr["EmpUnqID"].ToString(), out err);
+                                            break;
+                                        case "SETTIME":
+                                            m.SetTime(out err);
+                                            break;
+                                        default:
+                                            err = "undefined activity";
+                                            break;
+                                    }
+                                    #endregion
+
+                                    #region setsts
+                                    using (SqlConnection cn = new SqlConnection(Utils.Helper.constr))
+                                    {
+                                        try
+                                        {
+                                            cn.Open();
+                                            using (SqlCommand cmd = new SqlCommand())
+                                            {
+                                                cmd.Connection = cn;
+                                                if (string.IsNullOrEmpty(err))
+                                                {
+                                                    sql = "Update MastMachineUserOperation Set DoneFlg = 1, DoneDt = GetDate(), LastError = 'Completed' , " +
+                                                        " UpdDt=GetDate() where ID ='" + dr["ID"].ToString() + "' and MachineIP = '" + dr["MachineIP"].ToString() + "' and Operation = '" + dr["Operation"].ToString() + "';";
+                                                }
+                                                else
+                                                {
+                                                    sql = "Update MastMachineUserOperation Set UpdDt=GetDate(), LastError = '" + err + "' " +
+                                                        " where ID ='" + dr["ID"].ToString() + "' and MachineIP = '" + dr["MachineIP"].ToString() + "' and Operation = '" + dr["Operation"].ToString() + "';";
+                                                }
+                                                cmd.CommandText = sql;
+                                                cmd.ExecuteNonQuery();
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            tMsg.MsgTime = DateTime.Now;
+                                            tMsg.MsgType = "Machine Operation->";
+                                            tMsg.Message = "Error : " + dr["Operation"].ToString() + " : EmpUnqID=>" + dr["EmpUnqID"].ToString() + "->" + dr["MachineIP"].ToString() + "->" + ex.ToString();
+                                            Scheduler.Publish(tMsg);
+
+                                        }
+                                    }//using
+                                    #endregion
+
+                                    m.RefreshData();
+                                    m.EnableDevice(true);
+                                    m.DisConnect(out err);
+                                }
+                                else
+                                {
+                                    #region setsts
+                                    tMsg.MsgTime = DateTime.Now;
+                                    tMsg.MsgType = "Machine Operation->";
+                                    tMsg.Message = "Error : " + dr["Operation"].ToString() + " : EmpUnqID=>" + dr["EmpUnqID"].ToString() + "->" + dr["MachineIP"].ToString() + "->" + err.ToString();
+                                    Scheduler.Publish(tMsg);
+
+                                    //record errs
+                                    using (SqlConnection cn = new SqlConnection(Utils.Helper.constr))
+                                    {
+                                        try
+                                        {
+                                            cn.Open();
+                                            using (SqlCommand cmd = new SqlCommand())
+                                            {
+                                                cmd.Connection = cn;
+                                                sql = "Update MastMachineUserOperation Set UpdDt=GetDate(), LastError = '" + err + "' " +
+                                                    " where ID ='" + dr["ID"].ToString() + "' and MachineIP = '" + dr["MachineIP"].ToString() + "' " +
+                                                    " and Operation = '" + dr["Operation"].ToString() + "';";
+                                                cmd.CommandText = sql;
+                                                cmd.ExecuteNonQuery();
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            tMsg.MsgTime = DateTime.Now;
+                                            tMsg.MsgType = "Machine Operation->";
+                                            tMsg.Message = "Error : " + dr["Operation"].ToString() + " : EmpUnqID=>" + dr["EmpUnqID"].ToString() + "->" + dr["MachineIP"].ToString() + "->" + ex.ToString();
+                                            Scheduler.Publish(tMsg);
+                                        }
+                                    }//using
+                                    #endregion
+                                }
+                               
+                            }//foreach
+
+                            
+                        }
+                        #endregion
+                    }
                 }
                 else
                 {
                     _StatusWorker = false;
-                   
+
                 }
+
+                _StatusWorker = false;
             }
         }
 
@@ -1340,7 +1372,7 @@ namespace Attendance.Classes
                    _StatusWorker == false)
                 {
                      //
-                    string sql = "Select EmpUnqID from MastEmp where Active = 1 and ValidTo < GetDate() and WrkGrp <> 'COMP' AND COMPCODE = '01'";
+                    string sql = "Select EmpUnqID from MastEmp where Active = 1 and ValidityExpired = 0 and ValidTo < GetDate() and WrkGrp <> 'COMP' AND COMPCODE = '01'";
                     string cnerr = string.Empty;
                     
                     DataSet ds = Utils.Helper.GetData(sql, Utils.Helper.constr,out cnerr);
@@ -1357,14 +1389,14 @@ namespace Attendance.Classes
                     {
 
                         #region create_expired_emplist
-                        //create list of users
-                        List<UserBioInfo> tUserList = new List<UserBioInfo>();
-                        foreach (DataRow dr in ds.Tables[0].Rows)
-                        {
-                            UserBioInfo tuser = new UserBioInfo();
-                            tuser.UserID = dr["EmpUnqID"].ToString();
-                            tUserList.Add(tuser);
-                        }
+                        ////create list of users
+                        //List<UserBioInfo> tUserList = new List<UserBioInfo>();
+                        //foreach (DataRow dr in ds.Tables[0].Rows)
+                        //{
+                        //    UserBioInfo tuser = new UserBioInfo();
+                        //    tuser.UserID = dr["EmpUnqID"].ToString();
+                        //    tUserList.Add(tuser);
+                        //}
                         #endregion
                         
                         bool hasrow = Globals.G_DsMachine.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
@@ -1377,6 +1409,14 @@ namespace Attendance.Classes
                             }
 
                             _StatusWorker = true;
+
+                            string err;
+                            string maxid = Utils.Helper.GetDescription("Select isnull(Max(ID),0) + 1 from MastMachineUserOperation",Utils.Helper.constr,out err);
+                            if(!string.IsNullOrEmpty(err))
+                            {
+                                 _StatusWorker = false;
+                                return;
+                            }
 
                             //loop all machine
                             foreach (DataRow dr in Globals.G_DsMachine.Tables[0].Rows)
@@ -1401,40 +1441,52 @@ namespace Attendance.Classes
                                     tMsg.Message = ip;
                                     Scheduler.Publish(tMsg);
                                     string ioflg = dr["IOFLG"].ToString();
-                                    string err = string.Empty;
-                                    #region ConnectMachine
-                                    clsMachine m = new clsMachine(ip, ioflg);
-                                    m.Connect(out err);
-                                    if (!string.IsNullOrEmpty(err))
-                                    {
-
-                                        string fullpath = Path.Combine(Errfilepath, filenm);
-                                        //write primary errors
-                                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
-                                        {
-                                            file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-AutoDelete-[" + ip + "]-" + err);
-                                        }
-
-                                        tMsg.MsgTime = DateTime.Now;
-                                        tMsg.MsgType = "Auto Delete Left Employee";
-                                        tMsg.Message = ip;
-                                        Scheduler.Publish(tMsg);
-                                        continue;
-                                    }
-                                    #endregion
-                                    
                                     err = string.Empty;
-                                    List<UserBioInfo> temp = new List<UserBioInfo>();
-                                    m.DeleteUser(tUserList,out err,out temp);
-                                    string filenm2 = "AutoDeleteExpEmp_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".txt";
-                                    string fullpath2 = Path.Combine(Loginfopath, filenm2);
-                                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath2, true))
+
+                                    using (SqlConnection cn = new SqlConnection(Utils.Helper.constr))
                                     {
-                                        file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-Auto Delete Validity Expired Employee-[" + ip + "]-Completed");
+                                        try
+                                        {
+                                            cn.Open();
+                                            foreach (DataRow dr2 in ds.Tables[0].Rows)
+                                            {
+                                                using (SqlCommand cmd = new SqlCommand())
+                                                {
+                                                    string tsql = "Insert into MastMachineUserOperation (ID,EmpUnqID,MachineIP,IOFLG,Operation,ReqDt,ReqBy,Remarks,AddDt) Values " +
+                                                        "('" + maxid + "','" + dr2["EmpUnqID"].ToString() + "','" + ip + "','" + ioflg + "','DELETE',GetDate(),'SERVER','Validity Expired',GetDate())"; 
+                                                    
+                                                    cmd.Connection = cn;
+                                                    cmd.CommandType = CommandType.Text;
+                                                    cmd.CommandText = tsql;
+                                                    cmd.ExecuteNonQuery();
+
+                                                    tsql = "Update MastEmp Set ValidityExpired = 1 Where EmpUnqID = '" + dr2["EmpUnqID"].ToString() + "' And CompCode = '01'";
+                                                    cmd.CommandText = tsql;
+                                                    cmd.ExecuteNonQuery();
+
+                                                    string filenm2 = "AutoDeleteExpEmp_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".txt";
+                                                    string fullpath2 = Path.Combine(Loginfopath, filenm2);
+                                                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath2, true))
+                                                    {
+                                                            file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-Auto Delete Validity Expired Employee-[" + ip + "]-Completed");
+                                                    }
+
+                                                }
+                                            }
+                                            
+                                        }catch(Exception ex){
+
+                                            string filenm2 = "AutoDeleteExpEmp_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".txt";
+                                            string fullpath = Path.Combine(Errfilepath, filenm2);
+                                            using (System.IO.StreamWriter file = new System.IO.StreamWriter(fullpath, true))
+                                            {
+                                                file.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "-Auto Delete Validity Expired Employee-[" + ip + "]-" + ex.ToString());
+                                            }
+                                        
+                                        }
+                                        
                                     }
-                                    m.RefreshData();
-                                    m.DisConnect(out err);
-                                    
+                                                                        
                                 }
                                 catch (Exception ex)
                                 {

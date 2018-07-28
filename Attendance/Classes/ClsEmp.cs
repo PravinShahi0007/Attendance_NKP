@@ -799,6 +799,10 @@ namespace Attendance.Classes
             }
             err = string.Empty;
 
+            bool tValidityExp = false;
+
+            //((txtWrkGrpCode.Text.Trim() == "COMP") ? "0" : (txtValidTo.DateTime > DateTime.Now?"0":"1")),
+
             this.EmpName = tEmpName;
             this.FatherName = tFatherName;
             this.BirthDt = tBirthDt;
@@ -956,6 +960,18 @@ namespace Attendance.Classes
             {
                 this.ValidFrom = new DateTime?();
                 this.ValidTo = new DateTime?();
+                tValidityExp = false;
+            }
+            else
+            {
+                if (this.ValidTo > DateTime.Now)
+                {
+                    tValidityExp = false;
+                }
+                else
+                {
+                    tValidityExp = true;
+                }
             }
 
             this.MedChkFlg = tMedChkFlg;
@@ -982,15 +998,15 @@ namespace Attendance.Classes
                             " ADHARNO,IDPRF3,IDPRF3No,Sex,ContractFlg,PayrollFlg,OTFLG,Weekoff,Active," +
                             " ContCode,EmpCode,OldEmpCode,SAPID," +
                             " EmpTypeCode,DeptCode,StatCode,DesgCode,GradCode,CatCode, " +
-                            " ShiftType,MedChkFlg,SafetyTrnFLG,ShiftCode,CostCode, " +                            
-                            " AddDt,AddID,isHod,Basic) Values (" +
+                            " ShiftType,MedChkFlg,SafetyTrnFLG,ShiftCode,CostCode, " +
+                            " AddDt,AddID,isHod,Basic,ValidityExpired) Values (" +
                             "'{0}','{1}','{2}','{3}','{4}' ," +
                             " '{5}',{6},{7},'{8}','{9}',{10},{11}," +
                             " '{12}','ADHARCARD','{13}','{14}','{15}','{16}','{17}','{18}','1'," +
                             " {19},'{20}','{21}','{22}'," +
                             " {23},{24},{25},{26},{27},{28},{29}," +
                             " '{30}','{31}',{32}, " +
-                            " '{33}',GetDate(),'{34}',0,'{35}')";
+                            " '{33}',GetDate(),'{34}',0,'{35}','{36}')";
 
                         sql = string.Format(sql, this.CompCode, this.WrkGrp, this.EmpUnqID, this.EmpName, this.FatherName,
                             this.UnitCode, ((this.MessCode.Trim() == "") ? "null" : "'" + this.MessCode.Trim() + "'"),
@@ -1008,7 +1024,10 @@ namespace Attendance.Classes
                             (this.GradeCode == "" ? "null" : "'" + this.GradeCode + "'"), 
                             (this.CatCode == "" ? "null" : "'" + this.CatCode + "'"),
                             (this.AutoShift?1:0), (this.MedChkFlg?1:0),(this.SafetyTrnFLG?1:0),(this.AutoShift? "null": "'" + this.ShiftCode+"'"),
-                            this.CostCode,Utils.User.GUserID,cbasic);
+                            this.CostCode,Utils.User.GUserID,cbasic,
+                            (tValidityExp?1:0)
+                            
+                            );
 
                         cmd.CommandText = sql;
                         cmd.ExecuteNonQuery();

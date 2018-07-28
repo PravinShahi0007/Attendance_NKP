@@ -16,17 +16,21 @@ using Attendance.Classes;
 
 namespace Attendance.Forms
 {
-    public partial class frmValidityExtend : DevExpress.XtraEditors.XtraForm
-    {       
+    public partial class frmMastEmpBulkChange : DevExpress.XtraEditors.XtraForm
+    {
         public string GRights = "XXXV";
+       
+
 
         DataTable dt = new DataTable();
 
-        public frmValidityExtend()
+        public frmMastEmpBulkChange()
         {
-            InitializeComponent();            
+            InitializeComponent();
+            
         }
 
+        
         private void btnBrowse_Click(object sender, EventArgs e)
         {
             OpenFileDialog openKeywordsFileDialog = new OpenFileDialog();
@@ -72,63 +76,19 @@ namespace Attendance.Forms
             return;
         }
 
-        private string DataValidate(string tEmpUnqID, DateTime tValidFrom, DateTime tValidTo)
+        private string DataValidate(DataRow tdr)
         {
             string err = string.Empty;
             clsEmp t = new clsEmp();
             t.CompCode = "01";
-            t.EmpUnqID = tEmpUnqID;
+            t.EmpUnqID = tdr["EmpUnqID"].ToString();
             if (!t.GetEmpDetails(t.CompCode,t.EmpUnqID))
             {
                 err = err + "Invalid/InActive EmpUnqID..." + Environment.NewLine;
             }
-            else
-            {
-                if (!t.Active)
-                {
-                    err = err + "Invalid/InActive EmpUnqID..." + Environment.NewLine;
-                }
-            }
-            if (t.WrkGrp == "COMP")
-            {
-                err = err + "System Does Not Allowed for Company Onroll Employee..." + Environment.NewLine;
-                return err;
-            }
-
-            if (tValidFrom == DateTime.MinValue)
-            {
-                err = err + "Please Enter Valid From Date..." + Environment.NewLine;
-                return err;
-            }
-            
-
-            if (tValidTo == DateTime.MinValue)
-            {
-                err = err + "Please Enter Valid To Date..." + Environment.NewLine;
-                return err;
-            }
-
-            if (tValidFrom > tValidTo)
-            {
-                err = err + "Valid From Date must be less than Valid To Date..." + Environment.NewLine;
-                return err;
-            }
-
-
-            if (tValidFrom < t.JoinDt)
-            {
-                err = err + "Valid From Date must be grator than Join Date..." + Environment.NewLine;
-                return err;
-            }
-
-            if (tValidTo < t.JoinDt)
-            {
-                err = err + "Valid To Date must be grator than Join Date..." + Environment.NewLine;
-                return err;
-            }
-
             return err;
         }
+
 
         private void btnImport_Click(object sender, EventArgs e)
         {
@@ -139,11 +99,13 @@ namespace Attendance.Forms
             DataTable sortedDT = new DataTable();
             try
             {
+
                 foreach (GridColumn column in grd_view1.VisibleColumns)
                 {
                     if (column.FieldName != string.Empty)
                         dtMaterial.Columns.Add(column.FieldName, column.ColumnType);
                 }
+
 
                 for (int i = 0; i < grd_view1.DataRowCount; i++)
                 {
@@ -162,76 +124,97 @@ namespace Attendance.Forms
 
                 using (SqlConnection con = new SqlConnection(Utils.Helper.constr))
                 {
+                    
                     con.Open();
                     foreach (DataRow dr in sortedDT.Rows)
                     {
                         string tEmpUnqID = dr["EmpUnqID"].ToString();
-                        DateTime fromdt, toDt;
-                        try
-                        {
-                            fromdt = Convert.ToDateTime(dr["ValidFrom"]);
-                            toDt = Convert.ToDateTime(dr["ValidTo"]);
-                        }
-                        catch (Exception ex)
-                        {
-                            dr["Remarks"] = "Date Conversion Failed..";
-                            continue;
-                        }
                         
-                        string err = DataValidate(tEmpUnqID, fromdt,toDt);
+                        string err = DataValidate(dr);
 
                         if (!string.IsNullOrEmpty(err))
                         {
                             dr["Remarks"] = err;
                             continue; 
                         }
+                        
+                        #region Chk_AllVals
+                        //check all values if all empty skip
+                        if(dr["CatCode"].ToString() == "" && dr["DesgCode"].ToString() == ""
+                            && dr["GradeCode"].ToString() == "" && dr["Basic"].ToString() == "" )
+                        {
+                            dr["Remarks"] = dr["Remarks"].ToString() + " Nothing to update...";
+                            continue;
+                        }
+                        #endregion
+                        string tCatCode = dr["CatCode"].ToString();
+                        string tDesgCode = dr["DesgCode"].ToString();
+                        string tGradeCode = dr["GradeCode"].ToString();
+                        double tBasic = 0;
+                        try
+                        {
+                            double.TryParse(dr["Basic"].ToString(), out tBasic);
+                        }catch(Exception ex)
+                        {
+
+                        }
+                            
+                        #region Final_Update
 
                         using (SqlCommand cmd = new SqlCommand())
-                        {
+                        {                            
                             try
                             {
-
-                                bool tValidityExp = false;
-
-                                if (toDt > DateTime.Now)
-                                {
-                                    tValidityExp = false;
-                                }
-                                else
-                                {
-                                    tValidityExp = true;
-                                }
                                 
-
-
                                 cmd.Connection = con;
-                                string sql = "UpDate MastEmp set ValidFrom = '{0}',ValidTo = '{1}',UpdDt = GetDate(),UpdID = '{2}' , ValidityExpired = '{3}' where EmpUnqID = '{3}'";
-                                sql = string.Format(sql, 
-                                    fromdt.ToString("yyyy-MM-dd"),
-                                    toDt.ToString("yyyy-MM-dd"),
-                                    Utils.User.GUserID,
-                                    (tValidityExp?1:0),
-                                    tEmpUnqID
-                                    );
+                                cmd.CommandType = CommandType.Text;
+
+                                string sql = "Update MastEmp SET ";
+
+                                if (!String.IsNullOrEmpty(tCatCode.Trim()))
+                                {
+                                    sql += " CatCode = '" + tCatCode.Trim() + "', ";
+                                }
+
+                                if (!string.IsNullOrEmpty(tDesgCode.Trim()))
+                                {
+                                    sql += " DesgCode = '" + tDesgCode.Trim() + "', ";
+                                }
+
+                                if (!string.IsNullOrEmpty(tGradeCode.Trim()))
+                                {
+                                    sql += " GradCode = '" + tDesgCode.Trim() + "' ";
+                                }
+
+                                if (tBasic > 0)
+                                {
+                                    sql += " , Basic = '" + tBasic.ToString() + "' ";
+                                }
+
+                                sql += " , UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where CompCode = '01' and EmpUnqID = '" + tEmpUnqID + "'";
+
 
                                 cmd.CommandText = sql;
+                                cmd.CommandTimeout = 0;
                                 cmd.ExecuteNonQuery();
-                                dr["remarks"] = "Record saved...";
+
 
                             }
                             catch (Exception ex)
                             {
-                                dr["remarks"] = ex.ToString();
+                                dr["remarks"] = dr["remarks"].ToString() + ex.ToString();
                                 continue;
                             }
-                        }
-                    }
+
+                        }//using sqlcommand
+                        #endregion
+                    }//using foreach
 
                     con.Close();
-                }
+                }//using connection
 
                 Cursor.Current = Cursors.Default;
-                MessageBox.Show("file processed Successfully, please check the remarks for indivisual record status...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("file uploaded Successfully, please check the remarks for indivisual record status...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             DataSet ds = new DataSet();
@@ -262,6 +245,8 @@ namespace Attendance.Forms
                 btnImport.Enabled = false;
             }
 
+            
+
             Cursor.Current = Cursors.WaitCursor;
             grd_view.DataSource = null;
             string filePath = txtBrowse.Text.ToString();
@@ -271,6 +256,7 @@ namespace Attendance.Forms
 
             OleDbConnection oledbconn = new OleDbConnection(sexcelconnectionstring);
             List<SheetName> sheets = ExcelHelper.GetSheetNames(oledbconn);
+            string sheetname = "[" + sheets[0].sheetName.Replace("'", "") + "]";
 
             try
             {
@@ -283,14 +269,15 @@ namespace Attendance.Forms
             }
             
 
-            string sheetname = "[" + sheets[0].sheetName.Replace("'", "") + "]";
 
             try
             {
-                string myexceldataquery = "select EmpUnqID,ValidFrom,ValidTo,'' as Remarks from " + sheetname;
+                string myexceldataquery = "select EmpUnqID,CatCode,GradeCode,DesgCode,Basic,'' as Remarks from " + sheetname;
                 OleDbDataAdapter oledbda = new OleDbDataAdapter(myexceldataquery, oledbconn);
                 dt.Clear();
                 oledbda.Fill(dt);
+                
+                dt.AcceptChanges();
                 foreach (DataRow row in dt.Rows)
                 {
                     if (string.IsNullOrEmpty(row["EmpUnqID"].ToString().Trim()))
@@ -303,9 +290,10 @@ namespace Attendance.Forms
             catch (Exception ex)
             {
                 oledbconn.Close();
-                MessageBox.Show("Please Check upload template..", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please Check upload template.." + Environment.NewLine + ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Cursor.Current = Cursors.Default;
                 btnImport.Enabled = false;
+                oledbconn.Close();
                 return;
             }
             
@@ -313,6 +301,8 @@ namespace Attendance.Forms
             DataView dv = dt.DefaultView;
             dv.Sort = "EmpUnqID asc";
             DataTable sortedDT = dv.ToTable();
+
+
 
 
             grd_view.DataSource = sortedDT;
@@ -385,9 +375,10 @@ namespace Attendance.Forms
             }
         }
 
-        private void frmValidityExtend_Load(object sender, EventArgs e)
+        private void frmMastEmpBulkChange_Load(object sender, EventArgs e)
         {
             GRights = Attendance.Classes.Globals.GetFormRights(this.Name);
+                
             grd_view.DataSource = null;
             btnImport.Enabled = false;
         }

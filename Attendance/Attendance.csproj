@@ -197,6 +197,24 @@
     <Compile Include="Forms\frmHalfDayCheck.designer.cs">
       <DependentUpon>frmHalfDayCheck.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\frmMastEmpBlackList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmMastEmpBlackList.designer.cs">
+      <DependentUpon>frmMastEmpBlackList.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmMastEmpBlockPunching.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmMastEmpBlockPunching.designer.cs">
+      <DependentUpon>frmMastEmpBlockPunching.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmMastEmpBulkChange.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmMastEmpBulkChange.designer.cs">
+      <DependentUpon>frmMastEmpBulkChange.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\frmMastHolidayOpt.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -569,6 +587,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\frmHalfDayCheck.resx">
       <DependentUpon>frmHalfDayCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmMastEmpBlackList.resx">
+      <DependentUpon>frmMastEmpBlackList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmMastEmpBlockPunching.resx">
+      <DependentUpon>frmMastEmpBlockPunching.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmMastEmpBulkChange.resx">
+      <DependentUpon>frmMastEmpBulkChange.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\frmMastHolidayOpt.resx">
       <DependentUpon>frmMastHolidayOpt.cs</DependentUpon>
