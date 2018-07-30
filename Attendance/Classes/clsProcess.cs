@@ -1296,28 +1296,28 @@ namespace Attendance
                                 }
 
                                 #region Fix_For_GI_SMG
-                                if (drAttd["ConsShift"].ToString() == "DD")
-                                {
-                                    //if (Convert.ToDateTime(drAttd["ConsOut"]) >= ShiftOutFrom && Convert.ToDateTime(drAttd["ConsOut"]) <= ShiftOutTo)
-                                    if (Emp.OTFLG)
-                                    {
-                                        drAttd["ConsShift"] = "DD";
-                                        daAttdData.Update(dsAttdData, "AttdData");
-                                    }
-                                    else
-                                    {
-                                        drAttd["ConsShift"] = "GI";
-                                        DataRow[] drs = Globals.dtShift.Select("ShiftCode = 'GI'");
-                                        foreach (DataRow tdr in drs)
-                                        {
-                                            ShiftHrs = Convert.ToDouble(tdr["Shifthrs"]);
-                                            ShiftEnd = ShiftStart.AddHours(ShiftHrs);
-                                            ShiftBreak = Convert.ToDouble(tdr["BreakHrs"]);
-                                        }
-                                        daAttdData.Update(dsAttdData, "AttdData");
-                                    }
+                                //if (drAttd["ConsShift"].ToString() == "DD")
+                                //{
+                                //    //if (Convert.ToDateTime(drAttd["ConsOut"]) >= ShiftOutFrom && Convert.ToDateTime(drAttd["ConsOut"]) <= ShiftOutTo)
+                                //    if (Emp.OTFLG)
+                                //    {
+                                //        drAttd["ConsShift"] = "DD";
+                                //        daAttdData.Update(dsAttdData, "AttdData");
+                                //    }
+                                //    else
+                                //    {
+                                //        drAttd["ConsShift"] = "GI";
+                                //        DataRow[] drs = Globals.dtShift.Select("ShiftCode = 'GI'");
+                                //        foreach (DataRow tdr in drs)
+                                //        {
+                                //            ShiftHrs = Convert.ToDouble(tdr["Shifthrs"]);
+                                //            ShiftEnd = ShiftStart.AddHours(ShiftHrs);
+                                //            ShiftBreak = Convert.ToDouble(tdr["BreakHrs"]);
+                                //        }
+                                //        daAttdData.Update(dsAttdData, "AttdData");
+                                //    }
 
-                                }
+                                //}
                                 #endregion Fix_For_GI_SMG
 
                                 #region Set_EarlyGoing
