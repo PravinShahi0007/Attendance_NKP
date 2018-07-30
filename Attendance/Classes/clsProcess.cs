@@ -2063,13 +2063,11 @@ namespace Attendance
                     //otmin = ((int)OverTime - (othrs * 60));
                     ot = othrs;
 
-                    //if (otmin >= 21 && otmin <= 50)
-                    //{
-                    //    ot = othrs + 0.5;
-                    //}
-                    //else 
-                    
-                    if (otmin > 50 && otmin <= 59)
+                    if (otmin >= 21 && otmin <= 50)
+                    {
+                        ot = othrs + 0.5;
+                    }
+                    else if (otmin > 50 && otmin <= 59)
                     {
                         ot = othrs + 1;
                     }
@@ -2087,7 +2085,7 @@ namespace Attendance
                             int tmn = Convert.ToInt32(drAttd["Latecome"].ToString().Substring(3, 2));
 
                             ot = ot - thr;
-                            if (tmn >= Globals.G_GlobalGradeExclude && tmn <= 40)
+                            if (tmn >= 15 && tmn <= 40)
                                 ot = ot - 0.5;
                             else if (tmn >= 41 && tmn <= 59)
                                 ot = ot - 1;
@@ -2121,12 +2119,11 @@ namespace Attendance
                         //otmin = ((int)OverTime - (othrs * 60));
                         ot = othrs;
 
-                        //if (otmin >= 21 && otmin <= 50)
-                        //{
-                        //    ot = othrs + 0.5;
-                        //}
-                        //else 
-                        if (otmin > 50 && otmin <= 59)
+                        if (otmin >= 21 && otmin <= 50)
+                        {
+                            ot = othrs + 0.5;
+                        }
+                        else if (otmin > 50 && otmin <= 59)
                         {
                             ot = othrs + 1;
                         }
@@ -2166,12 +2163,11 @@ namespace Attendance
                         //otmin = ((int)OverTime - (othrs * 60));
                         ot = othrs;
 
-                        //if (otmin >= 21 && otmin <= 50)
-                        //{
-                        //    ot = othrs + 0.5;
-                        //}
-                        //else 
-                        if (otmin > 50 && otmin <= 59)
+                        if (otmin >= 21 && otmin <= 50)
+                        {
+                            ot = othrs + 0.5;
+                        }
+                        else if (otmin > 50 && otmin <= 59)
                         {
                             ot = othrs + 1;
                         }
