@@ -195,14 +195,28 @@ namespace Attendance.Forms
                         string tShiftCode = tdr["ShiftCode"].ToString().Trim().ToUpper();
 
                         double tbasic = 0;
+                        double tsplALL = 0;
+                        double tbaALL = 0;
+
                         try
                         {
                             double.TryParse(tdr["Basic"].ToString(), out tbasic);
                         }
-                        catch (Exception ex)
-                        {
+                        catch (Exception ex){}
 
+
+                        try
+                        {
+                            double.TryParse(tdr["SPLALL"].ToString(), out tsplALL);
                         }
+                        catch (Exception ex){}
+
+                        try
+                        {
+                            double.TryParse(tdr["BAALL"].ToString(), out tbaALL);
+                        }
+                        catch (Exception ex) { }
+
 
                         DateTime? tValidFrom = new DateTime?();
                         DateTime? tValidTo = new DateTime?();
@@ -232,7 +246,7 @@ namespace Attendance.Forms
                                 tEmpTypeCode, tCATCODE, tDeptcode, tStatCode,
                                     tDesgCode, tGradeCode, tMessGrpCode, tMessCode,
                                         tOldEmpCode, tSAPID, tCostCode, tAdharNo,
-                                            tValidFrom, tValidTo,tbasic, out err);
+                                            tValidFrom, tValidTo,tbasic,tsplALL,tbaALL, out err);
 
                         
                         if (string.IsNullOrEmpty(err))
@@ -305,7 +319,7 @@ namespace Attendance.Forms
                 string myexceldataquery = "select EmpUnqID,WrkGrp,UnitCode,EmpName,FatherName,Gender,Active," +
                     " BirthDt,JoinDt,WeekOff,PayrollFlg,ContractFlg,AutoShift,OTFLG,ShiftCode," +
                     " EmpCode,ContCode,EmpTypeCode,CatCode,DeptCode,StatCode,DesgCode,GradCode,MessGrpCode,MessCode," +
-                    " OldEmpCode,SapID,CostCode,AdharNo,ValidFrom,ValidTo,Basic, '' as Remarks from " + sheetname;
+                    " OldEmpCode,SapID,CostCode,AdharNo,ValidFrom,ValidTo,Basic,SPLALL,BAALL, '' as Remarks from " + sheetname;
 
                 OleDbDataAdapter oledbda = new OleDbDataAdapter(myexceldataquery, oledbconn);
                 dt = new DataTable();
