@@ -1123,6 +1123,18 @@ namespace Attendance
                 if (drAttd["ConsIN"] is DateTime && tShift == "")
                 {
                     #region AutoSiftCalc
+
+                    #region prefered_shift_1
+                    string tsamesql = "select ShiftCode from MastShift where ShiftStart in (SELECT [ShiftStart] FROM [MastShift] group by CompCode,ShiftStart having count(*) >= 2)";
+                    DataSet DsSameShift = Utils.Helper.GetData(tsamesql, Utils.Helper.constr);
+                    string tsameshift = string.Empty;
+                    foreach (DataRow dr in DsSameShift.Tables[0].Rows)
+                    {
+                        tsameshift += dr["ShiftCode"].ToString() + ",";
+                    }
+                    #endregion
+                    
+                    
                     // Create DataView
                     DataView dvShift = new DataView(Globals.dtShift);
                     dvShift.Sort = "ShiftSeq ASC";
@@ -1294,6 +1306,36 @@ namespace Attendance
                                     drAttd["ConsShift"] = drShift["ShiftCode"].ToString();
                                     daAttdData.Update(dsAttdData, "AttdData");
                                 }
+
+                                #region prefered_shift_2
+                                
+                                if (tsameshift.Contains(drAttd["ConsShift"].ToString()))
+                                {
+                                    //find the prefered shift
+                                    tsamesql = "select isnull(PreferedShifts,'') as t  from MastException where Empunqid = '" + drAttd["EmpUnqID"].ToString() + "'";
+                                    string tmperr = string.Empty;
+                                    string tPreferedShift = Utils.Helper.GetDescription(tsamesql, Utils.Helper.constr, out tmperr);
+
+                                    if (!string.IsNullOrEmpty(tPreferedShift))
+                                    {
+                                        if (tPreferedShift != drAttd["ConsShift"].ToString())
+                                        {
+                                            drAttd["ConsShift"] = tPreferedShift;
+                                            DataRow[] drs = Globals.dtShift.Select("ShiftCode = '" + tPreferedShift + "'");
+                                            foreach (DataRow tdr in drs)
+                                            {
+                                                ShiftHrs = Convert.ToDouble(tdr["Shifthrs"]);
+                                                ShiftEnd = ShiftStart.AddHours(ShiftHrs);
+                                                ShiftBreak = Convert.ToDouble(tdr["BreakHrs"]);
+                                            }
+                                            daAttdData.Update(dsAttdData, "AttdData");
+                                        }
+                                    }
+                                }
+
+
+                                #endregion prefered_shift_2
+
 
                                 #region Fix_For_GI_SMG
                                 //if (drAttd["ConsShift"].ToString() == "DD")
