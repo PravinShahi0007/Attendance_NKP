@@ -254,6 +254,17 @@ namespace Attendance.Forms
                         {
                             txtBasic.Text = "0";
                         }
+
+                        if (string.IsNullOrEmpty(txtBAAll.Text.Trim()))
+                        {
+                            txtBAAll.Text = "0";
+                        }
+
+                        if (string.IsNullOrEmpty(txtSplALL.Text.Trim()))
+                        {
+                            txtSplALL.Text = "0";
+                        }
+
                         
                         cn.Open();
                         cmd.Connection = cn;
@@ -411,6 +422,18 @@ namespace Attendance.Forms
                         {
                             txtBasic.Text = "0";
                         }
+
+
+                        if (string.IsNullOrEmpty(txtBAAll.Text.Trim()))
+                        {
+                            txtBAAll.Text = "0";
+                        }
+
+                        if (string.IsNullOrEmpty(txtSplALL.Text.Trim()))
+                        {
+                            txtSplALL.Text = "0";
+                        }
+
 
                         sql = "Update MastEmp set WrkGrp ='{0}',EmpName='{1}',FatherName = '{2}'," +
                             " UnitCode = '{3}',MessCode={4},MessGrpCode = {5},BirthDt ='{6}',JoinDt ='{7}',ValidFrom = {8},ValidTo = {9}," +
@@ -908,7 +931,8 @@ namespace Attendance.Forms
             }
 
             txtBasic.Text = Utils.Helper.GetDescription("Select Basic from MastEmp where EmpUnqID ='" + txtEmpUnqID.Text.Trim() + "'", Utils.Helper.constr);
-
+            txtSplALL.Text = Utils.Helper.GetDescription("Select SPLALL from MastEmp where EmpUnqID ='" + txtEmpUnqID.Text.Trim() + "'", Utils.Helper.constr);
+            txtBAAll.Text = Utils.Helper.GetDescription("Select BAALL from MastEmp where EmpUnqID ='" + txtEmpUnqID.Text.Trim() + "'", Utils.Helper.constr);
             mode = "OLD";
             oldCode = cEmp.EmpUnqID;
         }

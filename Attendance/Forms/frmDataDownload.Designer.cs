@@ -43,6 +43,7 @@
             this.Remarks = new DevExpress.XtraGrid.Columns.GridColumn();
             this.Mess = new DevExpress.XtraGrid.Columns.GridColumn();
             this.grpButtons = new System.Windows.Forms.GroupBox();
+            this.btnGetRegCount = new DevExpress.XtraEditors.SimpleButton();
             this.btnClearMach = new DevExpress.XtraEditors.SimpleButton();
             this.btnExport = new DevExpress.XtraEditors.SimpleButton();
             this.btnUnockMach = new DevExpress.XtraEditors.SimpleButton();
@@ -70,7 +71,7 @@
             this.tblp.RowCount = 2;
             this.tblp.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 69F));
             this.tblp.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tblp.Size = new System.Drawing.Size(951, 576);
+            this.tblp.Size = new System.Drawing.Size(1111, 576);
             this.tblp.TabIndex = 0;
             // 
             // groupBox2
@@ -79,7 +80,7 @@
             this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox2.Location = new System.Drawing.Point(3, 72);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(945, 501);
+            this.groupBox2.Size = new System.Drawing.Size(1105, 501);
             this.groupBox2.TabIndex = 3;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Available Machine";
@@ -92,7 +93,7 @@
             this.grpGrid.Name = "grpGrid";
             this.grpGrid.RepositoryItems.AddRange(new DevExpress.XtraEditors.Repository.RepositoryItem[] {
             this.repositoryItemCheckEdit1});
-            this.grpGrid.Size = new System.Drawing.Size(939, 481);
+            this.grpGrid.Size = new System.Drawing.Size(1099, 481);
             this.grpGrid.TabIndex = 3;
             this.grpGrid.ViewCollection.AddRange(new DevExpress.XtraGrid.Views.Base.BaseView[] {
             this.gv_avbl});
@@ -273,6 +274,7 @@
             // 
             // grpButtons
             // 
+            this.grpButtons.Controls.Add(this.btnGetRegCount);
             this.grpButtons.Controls.Add(this.btnClearMach);
             this.grpButtons.Controls.Add(this.btnExport);
             this.grpButtons.Controls.Add(this.btnUnockMach);
@@ -283,9 +285,20 @@
             this.grpButtons.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons.Location = new System.Drawing.Point(3, 3);
             this.grpButtons.Name = "grpButtons";
-            this.grpButtons.Size = new System.Drawing.Size(945, 63);
+            this.grpButtons.Size = new System.Drawing.Size(1105, 63);
             this.grpButtons.TabIndex = 4;
             this.grpButtons.TabStop = false;
+            // 
+            // btnGetRegCount
+            // 
+            this.btnGetRegCount.Appearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGetRegCount.Appearance.Options.UseFont = true;
+            this.btnGetRegCount.Location = new System.Drawing.Point(768, 23);
+            this.btnGetRegCount.Name = "btnGetRegCount";
+            this.btnGetRegCount.Size = new System.Drawing.Size(120, 27);
+            this.btnGetRegCount.TabIndex = 8;
+            this.btnGetRegCount.Text = "&Get Reg. Count";
+            this.btnGetRegCount.Click += new System.EventHandler(this.btnGetRegCount_Click);
             // 
             // btnClearMach
             // 
@@ -302,11 +315,11 @@
             // 
             this.btnExport.Appearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnExport.Appearance.Options.UseFont = true;
-            this.btnExport.Location = new System.Drawing.Point(816, 23);
+            this.btnExport.Location = new System.Drawing.Point(976, 23);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(120, 27);
             this.btnExport.TabIndex = 6;
-            this.btnExport.Text = "&Export Errors";
+            this.btnExport.Text = "&Export Data";
             this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
             // 
             // btnUnockMach
@@ -368,7 +381,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(951, 576);
+            this.ClientSize = new System.Drawing.Size(1111, 576);
             this.Controls.Add(this.tblp);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "frmDataDownload";
@@ -408,5 +421,6 @@
         private DevExpress.XtraEditors.SimpleButton btnUnockMach;
         private DevExpress.XtraEditors.SimpleButton btnExport;
         private DevExpress.XtraEditors.SimpleButton btnClearMach;
+        private DevExpress.XtraEditors.SimpleButton btnGetRegCount;
     }
 }
