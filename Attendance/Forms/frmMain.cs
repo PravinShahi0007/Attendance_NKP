@@ -1116,6 +1116,30 @@ namespace Attendance
                 m.Show();
             }
         }
+
+        private void mnuPunchingBlock_Click(object sender, EventArgs e)
+        {
+            Form t = Application.OpenForms["frmMastEmpBlockPunching"];
+
+            if (t == null)
+            {
+                Attendance.Forms.frmMastEmpBlockPunching m = new Attendance.Forms.frmMastEmpBlockPunching();
+                m.MdiParent = this;
+                m.Show();
+            }
+        }
+
+        private void mnuBlackListAdhar_Click(object sender, EventArgs e)
+        {
+            Form t = Application.OpenForms["frmMastEmpBlackList"];
+
+            if (t == null)
+            {
+                Attendance.Forms.frmMastEmpBlackList m = new Attendance.Forms.frmMastEmpBlackList();
+                m.MdiParent = this;
+                m.Show();
+            }
+        }
         
 
     }

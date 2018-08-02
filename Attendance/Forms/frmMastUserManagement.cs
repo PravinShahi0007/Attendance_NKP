@@ -274,7 +274,7 @@ namespace Attendance.Forms
                     chkComp.Checked = Convert.ToBoolean(dr["PayrollFlg"]);
                     chkCont.Checked = Convert.ToBoolean(dr["ContractFlg"]);
 
-                    bool isBlocked = Convert.ToBoolean(dr["PunchingBlocked"]);
+                    bool isBlocked = (dr["PunchingBlocked"] == DBNull.Value) ? false : Convert.ToBoolean(dr["PunchingBlocked"]);
                     if (isBlocked)
                     {
                         chkActive.Checked = false;

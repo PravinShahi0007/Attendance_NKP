@@ -75,11 +75,14 @@
             this.mnuValidityMass = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMisConduct = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMastException = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuEmpBulkChange = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMess = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMastMessGrp = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMastFood = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMastTime = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMastRate = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuBlackListAdhar = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuPunchingBlock = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuCostCent = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuCostCodeMast = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuEmpCostCode = new System.Windows.Forms.ToolStripMenuItem();
@@ -119,9 +122,6 @@
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsUserDesc = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsExtra = new System.Windows.Forms.ToolStripStatusLabel();
-            this.mnuBlackListAdhar = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuPunchingBlock = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuEmpBulkChange = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -513,6 +513,12 @@
             this.mnuMastException.Text = "Exception Master";
             this.mnuMastException.Click += new System.EventHandler(this.mnuMastException_Click);
             // 
+            // mnuEmpBulkChange
+            // 
+            this.mnuEmpBulkChange.Name = "mnuEmpBulkChange";
+            this.mnuEmpBulkChange.Size = new System.Drawing.Size(196, 22);
+            this.mnuEmpBulkChange.Text = "Bulk Employee Change";
+            // 
             // mnuMess
             // 
             this.mnuMess.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -527,30 +533,44 @@
             // mnuMastMessGrp
             // 
             this.mnuMastMessGrp.Name = "mnuMastMessGrp";
-            this.mnuMastMessGrp.Size = new System.Drawing.Size(152, 22);
+            this.mnuMastMessGrp.Size = new System.Drawing.Size(151, 22);
             this.mnuMastMessGrp.Text = "Group Master";
             this.mnuMastMessGrp.Click += new System.EventHandler(this.mnuMastMessGrp_Click);
             // 
             // mnuMastFood
             // 
             this.mnuMastFood.Name = "mnuMastFood";
-            this.mnuMastFood.Size = new System.Drawing.Size(152, 22);
+            this.mnuMastFood.Size = new System.Drawing.Size(151, 22);
             this.mnuMastFood.Text = "Food Master";
             this.mnuMastFood.Click += new System.EventHandler(this.mnuMastFood_Click);
             // 
             // mnuMastTime
             // 
             this.mnuMastTime.Name = "mnuMastTime";
-            this.mnuMastTime.Size = new System.Drawing.Size(152, 22);
+            this.mnuMastTime.Size = new System.Drawing.Size(151, 22);
             this.mnuMastTime.Text = "Timing Master";
             this.mnuMastTime.Click += new System.EventHandler(this.mnuMastTime_Click);
             // 
             // mnuMastRate
             // 
             this.mnuMastRate.Name = "mnuMastRate";
-            this.mnuMastRate.Size = new System.Drawing.Size(152, 22);
+            this.mnuMastRate.Size = new System.Drawing.Size(151, 22);
             this.mnuMastRate.Text = "Rate Master";
             this.mnuMastRate.Click += new System.EventHandler(this.mnuMastRate_Click);
+            // 
+            // mnuBlackListAdhar
+            // 
+            this.mnuBlackListAdhar.Name = "mnuBlackListAdhar";
+            this.mnuBlackListAdhar.Size = new System.Drawing.Size(209, 22);
+            this.mnuBlackListAdhar.Text = "BlackList Aadhaar Card";
+            this.mnuBlackListAdhar.Click += new System.EventHandler(this.mnuBlackListAdhar_Click);
+            // 
+            // mnuPunchingBlock
+            // 
+            this.mnuPunchingBlock.Name = "mnuPunchingBlock";
+            this.mnuPunchingBlock.Size = new System.Drawing.Size(209, 22);
+            this.mnuPunchingBlock.Text = "Punching  Block/UnBlock";
+            this.mnuPunchingBlock.Click += new System.EventHandler(this.mnuPunchingBlock_Click);
             // 
             // mnuCostCent
             // 
@@ -852,24 +872,6 @@
             // 
             this.stsExtra.Name = "stsExtra";
             this.stsExtra.Size = new System.Drawing.Size(0, 17);
-            // 
-            // mnuBlackListAdhar
-            // 
-            this.mnuBlackListAdhar.Name = "mnuBlackListAdhar";
-            this.mnuBlackListAdhar.Size = new System.Drawing.Size(209, 22);
-            this.mnuBlackListAdhar.Text = "BlackList Aadhaar Card";
-            // 
-            // mnuPunchingBlock
-            // 
-            this.mnuPunchingBlock.Name = "mnuPunchingBlock";
-            this.mnuPunchingBlock.Size = new System.Drawing.Size(209, 22);
-            this.mnuPunchingBlock.Text = "Punching  Block/UnBlock";
-            // 
-            // mnuEmpBulkChange
-            // 
-            this.mnuEmpBulkChange.Name = "mnuEmpBulkChange";
-            this.mnuEmpBulkChange.Size = new System.Drawing.Size(196, 22);
-            this.mnuEmpBulkChange.Text = "Bulk Employee Change";
             // 
             // frmMain
             // 

@@ -549,7 +549,7 @@ namespace Attendance.Classes
 
                 try
                 {
-                    string sql = "Select EmpUnqID,EmpName,WrkGrp,MessCode,MessGrpCode from MastEmp Where EmpUnqId ='" + tEmpUnqID + "'";
+                    string sql = "Select EmpUnqID,EmpName,WrkGrp,MessCode,MessGrpCode,PunchingBlocked from MastEmp Where EmpUnqId ='" + tEmpUnqID + "'";
                     DataSet ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
                     bool hasRows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
 
@@ -562,6 +562,7 @@ namespace Attendance.Classes
                             this.MessGrpCode = dr["MessGrpCode"].ToString();
                             this.UserID = dr["EmpUnqID"].ToString();
                             this.UserName = dr["EmpName"].ToString();
+                            this.Enabled = !((dr["PunchingBlocked"] == DBNull.Value) ? false : Convert.ToBoolean(dr["PunchingBlocked"]));
                         }
                     }
 

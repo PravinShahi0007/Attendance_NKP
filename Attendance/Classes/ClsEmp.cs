@@ -1001,14 +1001,14 @@ namespace Attendance.Classes
                             " ContCode,EmpCode,OldEmpCode,SAPID," +
                             " EmpTypeCode,DeptCode,StatCode,DesgCode,GradCode,CatCode, " +
                             " ShiftType,MedChkFlg,SafetyTrnFLG,ShiftCode,CostCode, " +
-                            " AddDt,AddID,isHod,Basic,ValidityExpired,SPLALL,BAALL) Values (" +
+                            " AddDt,AddID,isHod,Basic,ValidityExpired,SPLALL,BAALL,PunchingBlocked) Values (" +
                             "'{0}','{1}','{2}','{3}','{4}' ," +
                             " '{5}',{6},{7},'{8}','{9}',{10},{11}," +
                             " '{12}','ADHARCARD','{13}','{14}','{15}','{16}','{17}','{18}','1'," +
                             " {19},'{20}','{21}','{22}'," +
                             " {23},{24},{25},{26},{27},{28},{29}," +
                             " '{30}','{31}',{32}, " +
-                            " '{33}',GetDate(),'{34}',0,'{35}','{36}','{37}','{38}')";
+                            " '{33}',GetDate(),'{34}',0,'{35}','{36}','{37}','{38}','0')";
 
                         sql = string.Format(sql, this.CompCode, this.WrkGrp, this.EmpUnqID, this.EmpName, this.FatherName,
                             this.UnitCode, ((this.MessCode.Trim() == "") ? "null" : "'" + this.MessCode.Trim() + "'"),
