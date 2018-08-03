@@ -316,9 +316,9 @@ namespace Attendance.Forms
         {
             string tsubject = string.Empty;
             string tbody = string.Empty;
-            string to = "anil.singh@jindalsaw.com";
+            string to = Globals.G_DefaultMailID;
             //to = "anand.acharya@jindalsaw.com";
-            string cc = "vallabh.r@jindalsaw.com;pchandra.soni@jindalsaw.com";
+            string cc = Globals.G_JobNotificationEmail;
             string bcc = "anand.acharya@jindalsaw.com";
 
             if (mailtype == "BLOCK")
