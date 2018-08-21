@@ -179,6 +179,7 @@ namespace Attendance
                 Globals.G_myscheduler.RegSchedule_AutoProcess();
                 Globals.G_myscheduler.RegSchedule_DownloadPunch();
                 Globals.G_myscheduler.RegSchedule_AutoMail();
+                Globals.G_myscheduler.RegSchedule_BlockUnBlockProcess();
             }
             else
             {
@@ -1149,6 +1150,18 @@ namespace Attendance
             {
                 string twrd = Globals.G_ReportServiceURL.Substring(0, Globals.G_ReportServiceURL.IndexOf("ReportService2010.asmx"));
                 Process.Start("IExplore.exe", twrd);
+            }
+        }
+
+        private void mnuEmpBulkChange_Click(object sender, EventArgs e)
+        {
+            Form t = Application.OpenForms["frmMastEmpBulkChange"];
+
+            if (t == null)
+            {
+                Attendance.Forms.frmMastEmpBulkChange m = new Attendance.Forms.frmMastEmpBulkChange();
+                m.MdiParent = this;
+                m.Show();
             }
         }
         

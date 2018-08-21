@@ -840,11 +840,17 @@ namespace Attendance.Forms
                 {
                     try
                     {
+                        string remark = txtRemarks.Text.Trim().ToString().Replace("'", "");
+                        remark = remark.Replace('"', ' ');
+                        remark = remark.Replace("&", "");
+                        remark = remark.Replace("%", "");
+                        remark = remark.Substring(0, (remark.Length > 100) ? 100 : remark.Length);
+
                         string insertsql = "insert into LeaveEntry (CompCode,WrkGrp,tYear,EmpUnqID,FromDt,ToDt," +
                             " LeaveTyp,TotDay,WoDay,PublicHL,LeaveDed,LeaveADV,LeaveHalf,Remark,AddID,AddDt,DelFlg) " +
                             " Values ('" + Emp.CompCode + "','" + Emp.WrkGrp + "','" + FromDt.Year.ToString() + "','" + Emp.EmpUnqID + "','" + FromDt.ToString("yyyy-MM-dd") + "','" + ToDt.ToString("yyyy-MM-dd") + "', " +
                             " '" + LeaveTyp + "','" + TotalDays.ToString() + "','" + WoDaysNo.ToString() + "','" + HLDaysNo.ToString() + "'," +
-                            " '" + LeaveDays.ToString() + "','" + LeaveADV.ToString() + "','" + (IsHalf ? 1 : 0) + "','" + txtRemarks.Text.Trim() + "'," +
+                            " '" + LeaveDays.ToString() + "','" + LeaveADV.ToString() + "','" + (IsHalf ? 1 : 0) + "','" + remark + "'," +
                             " '" + Utils.User.GUserID + "',GetDate(),0)";
 
                         SqlCommand cmd = new SqlCommand(insertsql, cn, tr);

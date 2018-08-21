@@ -60,7 +60,7 @@ namespace Attendance.Forms
             chkGrace.CheckState = CheckState.Unchecked;
             chkLateCome.CheckState = CheckState.Unchecked;
             txtWrkGrpCode.Text = "";
-           
+            txtPshift.Text = "";
             txtEmpUnqID.Text = "";
             txtEmpName.Text = "";
 
@@ -116,16 +116,20 @@ namespace Attendance.Forms
                         cmd.Connection = cn;
                         string sql = "Insert into MastException " +
                             "(EmpUnqID,EmpName,WrkGrp,ExecAutoOut,ExecLateCome,ExecHalfDay,ExecGracePeriod,ExecEarlyGoing," +
-                            " AddDt,AddID) Values ('{0}','{1}','{2}','{3}','{4}','{5}'," +
-                            " '{6}','{7}',GetDate(),'{8}')";
-
+                            " AddDt,AddID,PreferedShifts,ExecMaxOT,MaxOT) Values ('{0}','{1}','{2}','{3}','{4}','{5}'," +
+                            " '{6}','{7}',GetDate(),'{8}','{9}','{10}','{11}')";
+                         
                         sql = string.Format(sql, txtEmpUnqID.Text.Trim().ToString(),txtEmpName.Text.Trim(), txtWrkGrpCode.Text.Trim().ToString(),
                             ((chkAutoOut.Checked) ? "1" : "0"), 
                             ((chkLateCome.Checked) ? "1" : "0"),
                             ((chkHalfDay.Checked) ? "1" : "0"),
                             ((chkGrace.Checked)?"1":"0") , 
                             ((chkEarlyGoing.Checked) ? "1" : "0"),                             
-                            Utils.User.GUserID);
+                            Utils.User.GUserID,
+                            txtPshift.Text.Trim().ToString(),
+                            ((chkMaxOT.Checked) ? "1" : "0"), 
+                            txtMaxOt.Value.ToString()
+                            );
 
                         cmd.CommandText = sql;
                         cmd.ExecuteNonQuery();
@@ -166,6 +170,9 @@ namespace Attendance.Forms
                             " ExecHalfDay='" +  ((chkHalfDay.Checked) ? "1" : "0")  + "'," +
                             " ExecGracePeriod = '" + ((chkGrace.Checked) ? "1" : "0") + "'," +
                             " ExecEarlyGoing ='" + ((chkEarlyGoing.Checked) ? "1" : "0") + "'," +
+                            " PreferedShifts ='" + txtPshift.Text.Trim().ToString() + "'," +
+                            " ExecMaxOt ='" + ((chkMaxOT.Checked) ? "1" : "0") + "'," +
+                            " MaxOT ='" + txtMaxOt.Value.ToString() + "'," +
                             " UpdDt = GetDate(), UpdID = '" + Utils.User.GUserID + "'" +
                             " Where EmpUnqID = '" + txtEmpUnqID.Text.Trim() + "'";
 
@@ -248,7 +255,7 @@ namespace Attendance.Forms
         private void LoadGrid()
         {
             DataSet ds = new DataSet();
-            string sql = "select a.EmpUnqID,b.EmpName,a.WrkGrp,a.ExecAutoOut,a.AddDt,a.AddID,a.UpdDt,a.UpdID From MastException a, MastEmp b Where a.EmpUnqID = b.EmpUnqId Order By EmpUnqID "; 
+            string sql = "select a.EmpUnqID,b.EmpName,a.WrkGrp,a.ExecAutoOut, a.PreferedShifts,a.ExecMaxOT,a.MaxOT, a.AddDt,a.AddID,a.UpdDt,a.UpdID From MastException a, MastEmp b Where a.EmpUnqID = b.EmpUnqId Order By EmpUnqID "; 
             ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
 
             Boolean hasRows = ds.Tables.Cast<DataTable>()
@@ -339,6 +346,53 @@ namespace Attendance.Forms
             }
         }
 
+        private void txtPshift_KeyDown(object sender, KeyEventArgs e)
+        {
+
+
+
+            if (e.KeyCode == Keys.F1 || e.KeyCode == Keys.F2 || e.KeyCode == Keys.F3)
+            {
+                List<string> obj = new List<string>();
+
+                Help_F1F2.ClsHelp hlp = new Help_F1F2.ClsHelp();
+                string sql = "";
+
+                sql = "select ShiftCode,'*' as t from MastShift where ShiftStart in ( " +
+                       " SELECT [ShiftStart] FROM MastShift " +
+                       "   group by CompCode,ShiftStart " +
+                       "   having count(*) >= 2)  ";
+
+                if (e.KeyCode == Keys.F1)
+                {
+                    obj = (List<string>)hlp.Show(sql, "ShiftCode", "ShiftCode", typeof(string), Utils.Helper.constr, "System.Data.SqlClient",
+                    100, 300, 400, 600, 100, 100);
+                }
+                
+
+                if (obj.Count == 0)
+                {
+                    txtPshift.Text = "";
+                    return;
+                }
+                else if (obj.ElementAt(0).ToString() == "0")
+                {
+                    txtPshift.Text = "";
+                    return;
+                }
+                else if (obj.ElementAt(0).ToString() == "")
+                {
+                    txtPshift.Text = "";
+                    return;
+                }
+                else
+                {
+                    txtPshift.Text = obj.ElementAt(0).ToString();
+                    
+                }
+            }
+        }
+
         private void txtEmpUnqID_Validated(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(txtEmpUnqID.Text.Trim()) )
@@ -349,7 +403,7 @@ namespace Attendance.Forms
             }
 
             DataSet ds = new DataSet();
-            string sql = "select EmpUnqID,EmpName,WrkGrp From MastException where EmpUnqID='" + txtEmpUnqID.Text.Trim() + "'";
+            string sql = "select * From MastException where EmpUnqID='" + txtEmpUnqID.Text.Trim() + "'";
 
             ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
             bool hasRows = ds.Tables.Cast<DataTable>()
@@ -362,6 +416,11 @@ namespace Attendance.Forms
                     txtEmpUnqID.Text = dr["EmpUnqID"].ToString();
                     txtEmpName.Text = dr["EmpName"].ToString();
                     txtWrkGrpCode.Text = dr["WrkGrp"].ToString();
+                    chkAutoOut.CheckState = (Convert.ToBoolean(dr["ExecAutoOut"])) ? CheckState.Checked : CheckState.Unchecked;
+                    
+                    txtPshift.Text = dr["PreferedShifts"].ToString();
+                    chkMaxOT.CheckState = (Convert.ToBoolean(dr["ExecMaxOT"])) ? CheckState.Checked : CheckState.Unchecked;
+                    txtMaxOt.Value = Convert.ToInt32(dr["MaxOT"].ToString());
                     mode = "OLD";
                     oldCode = dr["EmpUnqID"].ToString();
                 }
@@ -369,8 +428,11 @@ namespace Attendance.Forms
             else
             {
                 chkAutoOut.CheckState = CheckState.Unchecked;
+                txtPshift.Text = "";
                 txtEmpName.Text = Utils.Helper.GetDescription("Select EmpName From MastEmp Where EmpUnqID='" + txtEmpUnqID.Text.Trim() + "'", Utils.Helper.constr);
                 txtWrkGrpCode.Text = Utils.Helper.GetDescription("Select WrkGrp From MastEmp Where EmpUnqID='" + txtEmpUnqID.Text.Trim() + "'", Utils.Helper.constr);
+                txtMaxOt.Value = 0;
+                chkMaxOT.CheckState = CheckState.Unchecked;
                 mode = "NEW";
                 oldCode = "";
             }

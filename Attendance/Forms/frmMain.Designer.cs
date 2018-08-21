@@ -116,13 +116,13 @@
             this.mnuServerStat = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAbout = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuReports = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsUserID = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsUserDesc = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsExtra = new System.Windows.Forms.ToolStripStatusLabel();
-            this.mnuReports = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -519,6 +519,7 @@
             this.mnuEmpBulkChange.Name = "mnuEmpBulkChange";
             this.mnuEmpBulkChange.Size = new System.Drawing.Size(196, 22);
             this.mnuEmpBulkChange.Text = "Bulk Employee Change";
+            this.mnuEmpBulkChange.Click += new System.EventHandler(this.mnuEmpBulkChange_Click);
             // 
             // mnuMess
             // 
@@ -828,9 +829,16 @@
             // mnuAbout
             // 
             this.mnuAbout.Name = "mnuAbout";
-            this.mnuAbout.Size = new System.Drawing.Size(152, 22);
+            this.mnuAbout.Size = new System.Drawing.Size(114, 22);
             this.mnuAbout.Text = "About";
             this.mnuAbout.Click += new System.EventHandler(this.mnuAbout_Click);
+            // 
+            // mnuReports
+            // 
+            this.mnuReports.Name = "mnuReports";
+            this.mnuReports.Size = new System.Drawing.Size(114, 22);
+            this.mnuReports.Text = "Reports";
+            this.mnuReports.Click += new System.EventHandler(this.mnuReports_Click);
             // 
             // statusStrip1
             // 
@@ -874,13 +882,6 @@
             // 
             this.stsExtra.Name = "stsExtra";
             this.stsExtra.Size = new System.Drawing.Size(0, 17);
-            // 
-            // mnuReports
-            // 
-            this.mnuReports.Name = "mnuReports";
-            this.mnuReports.Size = new System.Drawing.Size(152, 22);
-            this.mnuReports.Text = "Reports";
-            this.mnuReports.Click += new System.EventHandler(this.mnuReports_Click);
             // 
             // frmMain
             // 

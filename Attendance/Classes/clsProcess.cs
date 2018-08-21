@@ -2134,6 +2134,20 @@ namespace Attendance
 
                         }
 
+                        #region Exeception_OT
+                        DataSet ds = Utils.Helper.GetData("select * from MastException where ExecMaxOT = 1 and EmpUnqID ='" + drAttd["EmpUnqID"].ToString() + "'", Utils.Helper.constr, out err);
+                        bool hasRows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
+                        if (hasRows)
+                        {
+                            double maxot = Convert.ToDouble(ds.Tables[0].Rows[0]["MaxOT"]);
+                            if (ot > maxot)
+                            {
+                                ot = maxot;
+                            }
+                        }
+                        #endregion
+
+
                         drAttd["ConsOverTime"] = ot;
                         drAttd["CalcOvertime"] = ot;
                     }

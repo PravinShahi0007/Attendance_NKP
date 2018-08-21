@@ -253,8 +253,7 @@ namespace Attendance.Classes
             DataSet ds = new DataSet();
             string sql = "Select MachineIP From ReaderConfig where LunchInOut = 1 Order By MachineIP";
             ds = Utils.Helper.GetData(sql, Utils.Helper.constr);
-            bool hasRows = ds.Tables.Cast<DataTable>()
-                           .Any(table => table.Rows.Count != 0);
+            bool hasRows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
 
             G_LunchInOutIP = string.Empty;
             if (hasRows)

@@ -13,6 +13,7 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using DevExpress.XtraGrid.Columns;
 using Attendance.Classes;
+using System.Globalization;
 
 namespace Attendance.Forms
 {
@@ -129,20 +130,21 @@ namespace Attendance.Forms
                     foreach (DataRow dr in sortedDT.Rows)
                     {
                         string tEmpUnqID = dr["EmpUnqID"].ToString();
-                        
+
                         string err = DataValidate(dr);
 
                         if (!string.IsNullOrEmpty(err))
                         {
                             dr["Remarks"] = err;
-                            continue; 
+                            continue;
                         }
-                        
+
                         #region Chk_AllVals
                         //check all values if all empty skip
-                        if(dr["CatCode"].ToString() == "" && dr["DesgCode"].ToString() == ""
-                            && dr["GradeCode"].ToString() == "" && dr["Basic"].ToString() == "" 
-                            && dr["SPLALL"].ToString() == "" && dr["BAALL"].ToString() == "" )
+                        if (dr["CatCode"].ToString() == "" && dr["DesgCode"].ToString() == ""
+                            && dr["GradeCode"].ToString() == "" && dr["Basic"].ToString() == ""
+                            && dr["SPLALL"].ToString() == "" && dr["BAALL"].ToString() == ""
+                            && dr["LeftDt"].ToString() == "")
                         {
                             dr["Remarks"] = dr["Remarks"].ToString() + " Nothing to update...";
                             continue;
@@ -153,12 +155,14 @@ namespace Attendance.Forms
                         string tGradeCode = dr["GradeCode"].ToString();
                         double tSplAll = 0;
                         double tBAAll = 0;
-
+                        DateTime tLeftDt = DateTime.MinValue;
                         double tBasic = 0;
+
                         try
                         {
                             double.TryParse(dr["Basic"].ToString(), out tBasic);
-                        }catch(Exception ex){}
+                        }
+                        catch (Exception ex) { }
 
                         try
                         {
@@ -173,14 +177,21 @@ namespace Attendance.Forms
                         catch (Exception ex) { }
 
 
+                        if (!DateTime.TryParseExact(dr["LeftDt"].ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out tLeftDt))
+                        {
+                            dr["Remarks"] = "Date Conversion failed(yyyy-MM-dd)...";
+                            continue;
+                        }
+
+
 
                         #region Final_Update
 
                         using (SqlCommand cmd = new SqlCommand())
-                        {                            
+                        {
                             try
                             {
-                                
+
                                 cmd.Connection = con;
                                 cmd.CommandType = CommandType.Text;
 
@@ -198,27 +209,40 @@ namespace Attendance.Forms
 
                                 if (!string.IsNullOrEmpty(tGradeCode.Trim()))
                                 {
-                                    sql += " GradCode = '" + tDesgCode.Trim() + "' ";
+                                    sql += " GradCode = '" + tDesgCode.Trim() + "', ";
                                 }
 
                                 if (tBasic > 0)
                                 {
-                                    sql += " , Basic = '" + tBasic.ToString() + "' ";
+                                    sql += "  Basic = '" + tBasic.ToString() + "', ";
                                 }
 
                                 if (tSplAll > 0)
                                 {
-                                    sql += " , SPLALL = '" + tSplAll.ToString() + "' ";
+                                    sql += "  SPLALL = '" + tSplAll.ToString() + "', ";
                                 }
 
                                 if (tBAAll > 0)
                                 {
-                                    sql += " , BAALL = '" + tBAAll.ToString() + "' ";
+                                    sql += "  BAALL = '" + tBAAll.ToString() + "', ";
                                 }
 
+                                if (tLeftDt.Date != DateTime.MinValue.Date)
+                                {
+                                    sql += " LeftDt ='" + tLeftDt.ToString("yyyy-MM-dd") + "', Active = 0 ,";
+                                }
 
-                                sql += " , UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where CompCode = '01' and EmpUnqID = '" + tEmpUnqID + "'";
+                                sql += "  UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where CompCode = '01' and EmpUnqID = '" + tEmpUnqID + "'";
 
+
+
+                                string sql2 = "insert into MastEmpHistory " +
+                               " select 'Before Update Master Data, Action By " + Utils.User.GUserID + "', GetDate(), * from MastEmp where " +
+                               " EmpUnqID ='" + tEmpUnqID + "'";
+
+                                cmd.CommandText = sql2;
+                                cmd.CommandTimeout = 0;
+                                cmd.ExecuteNonQuery();
 
                                 cmd.CommandText = sql;
                                 cmd.CommandTimeout = 0;
