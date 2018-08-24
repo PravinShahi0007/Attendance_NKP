@@ -176,13 +176,14 @@ namespace Attendance.Forms
                         }
                         catch (Exception ex) { }
 
-
-                        if (!DateTime.TryParseExact(dr["LeftDt"].ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out tLeftDt))
+                        if (!string.IsNullOrEmpty(dr["LeftDt"].ToString()))
                         {
-                            dr["Remarks"] = "Date Conversion failed(yyyy-MM-dd)...";
-                            continue;
+                            if (!DateTime.TryParseExact(dr["LeftDt"].ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out tLeftDt))
+                            {
+                                dr["Remarks"] = "Date Conversion failed(yyyy-MM-dd)...";
+                                continue;
+                            }
                         }
-
 
 
                         #region Final_Update
@@ -248,6 +249,7 @@ namespace Attendance.Forms
                                 cmd.CommandTimeout = 0;
                                 cmd.ExecuteNonQuery();
 
+                                dr["remarks"] = "Updated..";
 
                             }
                             catch (Exception ex)
@@ -322,7 +324,7 @@ namespace Attendance.Forms
 
             try
             {
-                string myexceldataquery = "select EmpUnqID,CatCode,GradeCode,DesgCode,Basic,SPLALL,BAALL, '' as Remarks from " + sheetname;
+                string myexceldataquery = "select EmpUnqID,CatCode,GradeCode,DesgCode,Basic,SPLALL,BAALL,LeftDt, '' as Remarks from " + sheetname;
                 OleDbDataAdapter oledbda = new OleDbDataAdapter(myexceldataquery, oledbconn);
                 dt.Clear();
                 oledbda.Fill(dt);
