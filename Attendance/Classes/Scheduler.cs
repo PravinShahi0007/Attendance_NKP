@@ -149,7 +149,9 @@ namespace Attendance.Classes
         public Scheduler()
         {   
            var properties = new System.Collections.Specialized.NameValueCollection();
-            properties["quartz.threadPool.threadCount"] = "20";
+            properties["quartz.threadPool.threadCount"] = "10";
+            properties["quartz.threadPool.type"] = "Quartz.Simpl.SimpleThreadPool, Quartz";
+            properties["quartz.scheduler.instanceName"] = "AttendanceScheduler";
 
             StdSchedulerFactory schedulerFactory = new StdSchedulerFactory(properties); //getting the scheduler factory
             scheduler = schedulerFactory.GetScheduler();//getting the instance
@@ -233,7 +235,7 @@ namespace Attendance.Classes
                     // Trigger the job to run now, and then repeat every 10 seconds
                     ITrigger trigger = TriggerBuilder.Create()
                         .WithIdentity(triggerid, "TRG_AutoTimeSet")                        
-                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes))
+                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes).WithMisfireHandlingInstructionFireAndProceed())
                         .StartNow()
                         .Build();
 
@@ -428,7 +430,7 @@ namespace Attendance.Classes
                     ITrigger trigger4 = TriggerBuilder.Create()
                         .WithIdentity(triggerid4, "TRG_Arrival")
                         .StartNow()
-                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes))                                          
+                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes).WithMisfireHandlingInstructionFireAndProceed())                                          
                         .Build();
 
                     // Tell quartz to schedule the job using our trigger
@@ -474,7 +476,7 @@ namespace Attendance.Classes
                     ITrigger trigger5 = TriggerBuilder.Create()
                         .WithIdentity(triggerid5, "TRG_AutoMail")
                         .StartNow()
-                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes))
+                        .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(tTime.Hours, tTime.Minutes).WithMisfireHandlingInstructionFireAndProceed())
                         .Build();
 
                     // Tell quartz to schedule the job using our trigger
@@ -503,9 +505,10 @@ namespace Attendance.Classes
             // Trigger the job to run every 3 minute
             ITrigger trigger = TriggerBuilder.Create()
                 .WithIdentity(triggerid, "TRG_BlockUnBlock")
+                .WithSchedule(CronScheduleBuilder.CronSchedule("0 0/2 * * * ?").WithMisfireHandlingInstructionFireAndProceed())
                 .StartNow()
-                .WithCronSchedule("0 0/2 * * * ?")
                 .Build();
+
 
             // Tell quartz to schedule the job using our trigger
             scheduler.ScheduleJob(job, trigger);

@@ -319,7 +319,7 @@ namespace Attendance.Forms
             string to = Globals.G_DefaultMailID;
             //to = "anand.acharya@jindalsaw.com";
             string cc = Globals.G_JobNotificationEmail;
-            string bcc = "anand.acharya@jindalsaw.com";
+            string bcc = "";
 
             if (mailtype == "BLOCK")
             {

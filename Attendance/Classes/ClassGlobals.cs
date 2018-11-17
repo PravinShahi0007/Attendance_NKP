@@ -726,7 +726,7 @@ namespace Attendance.Classes
                                 " ,'" + "Master" +  "'" +
                                 " ,'RFID',10 " +
                                 " ,'9999'  " +
-                                " ,'" + this.UserName + "' " +
+                                " ,'' " +
                                 " ,'" + this.Password + "' " +
                                 " ,'" + this.Previlege.ToString() + "'" +
                                 " ,'" + ((this.Enabled)?"0":"1") + "'" +
@@ -740,7 +740,7 @@ namespace Attendance.Classes
                                 " ,'" + "Master" +  "'" +
                                 " ,'FACE','" + this.FaceIndex.ToString() + "'" +
                                 " ,'9999'  " +
-                                " ,'" + this.UserName + "' " +
+                                " ,'' " +
                                 " ,'" + this.Password + "' " +
                                 " ,'" + this.Previlege.ToString() + "'" +
                                 " ,'" + ((this.Enabled)?"0":"1") + "'" +
@@ -755,7 +755,7 @@ namespace Attendance.Classes
                                 " ,'" + "Master" +  "'" +
                                 " ,'FINGER','" + this.FingerIndex.ToString() + "'" +
                                 " ,'9999'  " +
-                                " ,'" + this.UserName + "' " +
+                                " ,'' " +
                                 " ,'" + this.Password + "' " +
                                 " ,'" + this.Previlege.ToString() + "'" +
                                 " ,'" + ((this.Enabled)?"0":"1") + "'" +

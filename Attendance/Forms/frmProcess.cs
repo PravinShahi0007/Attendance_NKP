@@ -756,7 +756,17 @@ namespace Attendance.Forms
             }
 
             string tyearmt = txtWrkFromDt.DateTime.ToString("yyyyMM");
-            string pyearmt = Convert.ToDateTime(Utils.Helper.GetDescription("SELECT DateAdd(month, -1, Convert(date, GetDate()));", Utils.Helper.constr)).ToString("yyyyMM");
+
+            string pyearmt = Utils.Helper.GetDescription("SELECT DateAdd(month, -1, Convert(date, GetDate()));", Utils.Helper.constr, out err);
+            if(string.IsNullOrEmpty(err) && !string.IsNullOrEmpty(pyearmt))
+            {
+                 pyearmt = Convert.ToDateTime(pyearmt).ToString("yyyyMM");
+            }else
+            {
+                pyearmt = tyearmt;
+            }
+
+            //string pyearmt = Convert.ToDateTime(Utils.Helper.GetDescription("SELECT DateAdd(month, -1, Convert(date, GetDate()));", Utils.Helper.constr,out err)).ToString("yyyyMM");
 
             if (Convert.ToInt32(tyearmt) < Convert.ToInt32(pyearmt))
             {

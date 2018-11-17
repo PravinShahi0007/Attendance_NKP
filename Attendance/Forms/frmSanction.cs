@@ -595,8 +595,8 @@ namespace Attendance.Forms
 
             sqlLunchDt = "Select Top 40 tDate,[Shift] as Shft," +
                       " LunchLocation ,LunchOuttime as LunchOut, LunchTime as Lunch, LunchInTime as LunchIn, LunchRemarks," +
-                      " DinnerLocation,DinnerOuttime as DinnerOut, DinnerTime as Dinner, DinnerInTime as DinnerIn, DinnerRemarks," +
-                      " LeaveStatus,LeaveHalf,Ignore,Posted,ignoreBy " +
+                      " DinnerLocation,DinnerOuttime as DinnerOut, DinnerTime as Dinner, DinnerInTime as DinnerIn, DinnerRemarks,TotalMinutes" +
+                      //" LeaveStatus,LeaveHalf,Ignore,Posted,ignoreBy " +
                       " From AttdLunchHistory " +
                       " Where EmpUnqId ='" + Emp.EmpUnqID + "' And tDate >= '" + FromDt + "' ";
 

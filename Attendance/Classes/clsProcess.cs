@@ -2256,6 +2256,27 @@ namespace Attendance
                
                 daAttdData.Update(dsAttdData, "AttdData");
 
+                //27-08-2018 OverTime of ( CONT,CASUAL) min ot 2 hrs and maxot 4 hrs.
+                if ((Emp.WrkGrp == "CONT" || Emp.WrkGrp == "CASUAL") && drAttd["LeaveTyp"] == DBNull.Value  && Convert.ToInt32(drAttd["ConsOverTime"]) > 0)
+                {
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
+                    {
+                        drAttd["ConsOverTime"] = 0;
+                    }
+                    else if(Convert.ToInt32(drAttd["ConsOverTime"]) > 1 && Convert.ToInt32(drAttd["ConsOverTime"]) > 4)
+                    {
+                        drAttd["ConsOverTime"] = 4;
+                    }
+                }
+                else
+                {
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
+                    {
+                        drAttd["ConsOverTime"] = 0;
+                    }
+                }
+
+
                 #endregion OTCalc
 
                 err = string.Empty;
