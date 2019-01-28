@@ -193,7 +193,18 @@ namespace Attendance.Forms
 
                     case "Monthly Attendance Report":
                         reportPath = "/Attendance/Automail Reports/Monthly Attendance Report";
-                        rsExec.LoadReport(reportPath, historyID);
+
+                        try
+                        {
+                            rsExec.LoadReport(reportPath, historyID);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            continue;
+                        }
+                        
                         ParameterValue[] executionParams = new ParameterValue[4];
                         executionParams[0] = new ParameterValue();
                         executionParams[0].Name = "WrkGrp";
