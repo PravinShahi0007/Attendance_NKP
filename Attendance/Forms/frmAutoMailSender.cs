@@ -232,7 +232,19 @@ namespace Attendance.Forms
 
                     case "Daily Performance Report":
                         reportPath = "/Attendance/Automail Reports/New Daily Performance Report With Date Para";
-                        rsExec.LoadReport(reportPath, historyID);
+                        //rsExec.LoadReport(reportPath, historyID);
+
+                        try
+                        {
+                            rsExec.LoadReport(reportPath, historyID);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            continue;
+                        }
+                        
                         ParameterValue[] executionParams1 = new ParameterValue[3];
                         executionParams1[0] = new ParameterValue();
                         executionParams1[0].Name = "WrkGrp";
@@ -255,7 +267,18 @@ namespace Attendance.Forms
                         break; /* optional */
                     case "Monthly Lunch Halfday Report":
                         reportPath = "/Attendance/Automail Reports/Monthly Lunch Halfday Report";
-                        rsExec.LoadReport(reportPath, historyID);
+                        //rsExec.LoadReport(reportPath, historyID);
+
+                        try
+                        {
+                            rsExec.LoadReport(reportPath, historyID);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            continue;
+                        }
+                        
                         ParameterValue[] executionParams2 = new ParameterValue[4];
                         executionParams2[0] = new ParameterValue();
                         executionParams2[0].Name = "WrkGrp";

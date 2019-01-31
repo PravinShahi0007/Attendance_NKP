@@ -2161,7 +2161,7 @@ namespace Attendance.Classes
                 }
                 else
                 {
-                    string err = EmailHelper.Email(Globals.G_JobNotificationEmail, "", "", body, subject, Globals.G_DefaultMailID,
+                    string err = EmailHelper.Email(Globals.G_DefaultMailID, "", "", body, subject, Globals.G_DefaultMailID,
                     Globals.G_DefaultMailID, "", "");
                 }
                
