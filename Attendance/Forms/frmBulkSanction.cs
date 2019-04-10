@@ -128,6 +128,7 @@ namespace Attendance.Forms
                 using (SqlConnection con = new SqlConnection(Utils.Helper.constr))
                 {
                     DateTime tdt;
+                    DateTime curDate = Globals.GetSystemDateTime();
 
                     con.Open();
                     foreach (DataRow dr in sortedDT.Rows)
@@ -138,6 +139,16 @@ namespace Attendance.Forms
                         try
                         {
                             tdt = Convert.ToDateTime(dr["SanDate"]);
+                            //added 10/04/2019-Deloitee Auditor issue Mail Dated 02/04/2019
+                            if (tdt.Date > curDate.Date)
+                            {
+                                if (dr["InTime"].ToString() != "" || dr["OutTime"].ToString() != "")
+                                {
+                                    dr["InTime"] = DBNull.Value;
+                                    dr["OutTime"] = DBNull.Value;
+                                    dr["Remarks"] = "In Time/Out Time future date sanction denied";
+                                }
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -152,6 +163,9 @@ namespace Attendance.Forms
                             dr["Remarks"] = err;
                             continue; 
                         }
+
+
+
 
                         clsEmp Emp = new clsEmp();
 
