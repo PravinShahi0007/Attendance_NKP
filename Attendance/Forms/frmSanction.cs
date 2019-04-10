@@ -1054,12 +1054,12 @@ namespace Attendance.Forms
             }
 
             //added 10/04/2019-Deloitee Auditor issue Mail Dated 02/04/2019
-            if (txtInTime.Time.Hour > 0 || txtOutTime.Time.Hour > 0)
+            if (txtInTime.Time.Hour > 0 || txtOutTime.Time.Hour > 0 || txtOT.Value > 0)
             {
 
                 if (reqDate > curDate.Date)
                 {
-                    MessageBox.Show("In Time/Out Time future date sanction denied", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Future date sanction (In Time/Out Time/TPA Hours) denied", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 

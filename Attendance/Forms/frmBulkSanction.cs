@@ -146,7 +146,18 @@ namespace Attendance.Forms
                                 {
                                     dr["InTime"] = DBNull.Value;
                                     dr["OutTime"] = DBNull.Value;
-                                    dr["Remarks"] = "In Time/Out Time future date sanction denied";
+
+                                    double t = 0;
+                                    if (double.TryParse(dr["TPAHours"].ToString(), out t))
+                                    {
+                                        if (t > 0)
+                                        {
+                                            dr["TPAHours"] = "";
+                                        }
+                                    }
+
+                                    dr["Remarks"] = "Future date sanction (In Time/Out Time/TPA Hours) denied";
+                                    
                                 }
                             }
                         }
