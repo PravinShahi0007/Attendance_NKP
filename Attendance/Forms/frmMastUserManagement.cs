@@ -1802,7 +1802,7 @@ namespace Attendance.Forms
 
                     if (!string.IsNullOrEmpty(cells.ToString()))
                     {
-                        txtEmpUnqID.Text = cells.Substring(0, 8).Trim();
+                        txtEmpUnqID.Text = cells;
                         txtEmpUnqID_Validated(sender, e);
                         btnAddEmp_Click(sender, e);
                     }
@@ -1811,5 +1811,156 @@ namespace Attendance.Forms
             }
         }
         
+        private void btnDevInfo_Click(object sender, EventArgs e)
+        {
+            ResetRemarks();
+            LockCtrl();
+            //Cursor.Current = Cursors.WaitCursor;
+
+            for (int i = 0; i < gv_avbl.DataRowCount; i++)
+            {
+                string tsel = gv_avbl.GetRowCellValue(i, "SEL").ToString();
+                if (!Convert.ToBoolean(tsel))
+                    continue;
+
+                string ip = gv_avbl.GetRowCellValue(i, "MachineIP").ToString();
+                string ioflg = gv_avbl.GetRowCellValue(i, "IOFLG").ToString().Trim();
+                gv_avbl.SetRowCellValue(i, "Remarks", "Connecting");
+
+                clsMachine m = new clsMachine(ip, ioflg);
+                string err = string.Empty;
+
+                //try to connect
+                m.Connect(out err);
+                gv_avbl.SetRowCellValue(i, "Remarks", err);
+
+                if (!string.IsNullOrEmpty(err))
+                {
+                    continue;
+                }
+
+                err = "";
+
+                if (!m.SaveDeviceData(out err))
+                {
+                    gv_avbl.SetRowCellValue(i, "Remarks", err);
+                    continue;
+                }
+
+                //if (!m.ClearAll_Users_Data(out err))
+                //{
+                //    gv_avbl.SetRowCellValue(i, "Remarks", err);
+                //    continue;
+                //}
+
+                //if (!m.SaveDeviceData(out err))
+                //{
+                //    gv_avbl.SetRowCellValue(i, "Remarks", err);
+                //    continue;
+                //}
+
+                if (string.IsNullOrEmpty(err))
+                {
+                    gv_avbl.SetRowCellValue(i, "Remarks", "Completed..");
+                }
+                else
+                {
+                    gv_avbl.SetRowCellValue(i, "Remarks", err);
+                }
+
+                m.DisConnect(out err);
+            }
+
+            UnLockCtrl();
+            //Cursor.Current = Cursors.Default;
+            MessageBox.Show("Completed", "Info", MessageBoxButtons.OK);
+        }
+
+        private void btnReplaceEmp_Click(object sender, EventArgs e)
+        {
+            ResetRemarks();
+            LockCtrl();
+            //Cursor.Current = Cursors.WaitCursor;
+
+            for (int i = 0; i < gv_avbl.DataRowCount; i++)
+            {
+                string tsel = gv_avbl.GetRowCellValue(i, "SEL").ToString();
+                if (!Convert.ToBoolean(tsel))
+                    continue;
+
+                string ip = gv_avbl.GetRowCellValue(i, "MachineIP").ToString();
+                string ioflg = gv_avbl.GetRowCellValue(i, "IOFLG").ToString().Trim();
+                gv_avbl.SetRowCellValue(i, "Remarks", "Connecting");
+
+                clsMachine m = new clsMachine(ip, ioflg);
+                string err = string.Empty;
+
+                //try to connect
+                m.Connect(out err);
+                gv_avbl.SetRowCellValue(i, "Remarks", err);
+
+                if (!string.IsNullOrEmpty(err))
+                {
+                    continue;
+                }
+
+                err = "";
+
+                List<UserBioInfo> tmpuser = new List<UserBioInfo>();
+                m.DownloadAllUsers_QuickReport(out err, out tmpuser);
+
+                if (!string.IsNullOrEmpty(err))
+                {
+                    continue;
+                }
+
+                m.ClearAll_Users_Data(out err);
+
+                foreach (UserBioInfo t in tmpuser)
+                {
+                   
+
+                    //m.DeleteUser(t.UserID, out err);
+                    
+                    string newempcode = Utils.Helper.GetDescription("select EmpUnqId from MastEmp where OtherInfo ='" + t.UserID + "'",Utils.Helper.constr,out err);
+
+                    if(string.IsNullOrEmpty(newempcode))
+                        continue;
+
+                    t.UserID = newempcode;
+                    
+                    t.GetBioInfoFromDB(newempcode);
+                    t.Enabled = true;
+                    t.Previlege = 0;
+                    t.Password = "";
+                    t.UserName = "";
+
+                }
+
+                m.RefreshData();
+                m.EnableDevice(false);
+                List<UserBioInfo> retuser = new List<UserBioInfo>();
+                m.Register(tmpuser, out retuser);
+                m.EnableDevice(true);
+                m.RefreshData();
+                err = "";
+
+
+                if (string.IsNullOrEmpty(err))
+                {
+                    gv_avbl.SetRowCellValue(i, "Remarks", "Completed..");
+                }
+                else
+                {
+                    gv_avbl.SetRowCellValue(i, "Remarks", err);
+                }
+
+                m.DisConnect(out err);
+            }
+
+            UnLockCtrl();
+            //Cursor.Current = Cursors.Default;
+            MessageBox.Show("Completed", "Info", MessageBoxButtons.OK);
+        }
     }
 }

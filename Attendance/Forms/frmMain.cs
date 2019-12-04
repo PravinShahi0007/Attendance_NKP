@@ -33,7 +33,7 @@ namespace Attendance
             stsUserID.Text = Utils.User.GUserID;
             stsUserDesc.Text = Utils.User.GUserName;
 
-            this.Text = "Attendance System (JSAW): (Server->" + tdb.DataSource + ")";
+            this.Text = "Attendance System (JSAW): (Server->" + tdb.DataSource + ",DB->" + tdb.DbName + ")";
         }
 
         private void mnuUserRights_Click(object sender, EventArgs e)
@@ -1148,8 +1148,17 @@ namespace Attendance
         {
             if (!string.IsNullOrEmpty(Globals.G_ReportServiceURL))
             {
-                string twrd = Globals.G_ReportServiceURL.Substring(0, Globals.G_ReportServiceURL.IndexOf("ReportService2010.asmx"));
-                Process.Start("IExplore.exe", twrd);
+                string sql = "Select Config_Val from Mast_OtherConfig where Config_Key = 'ReportServerBrowseURL'";
+                string turl = Utils.Helper.GetDescription(sql, Utils.Helper.constr);
+                if (!string.IsNullOrEmpty(turl))
+                {
+                    Process.Start("IExplore.exe", turl);
+                }
+                else
+                {
+                    MessageBox.Show("'ReportServerBrowseURL'<-ConfigKey is not configured, please configure from Admin->Config Key", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
             }
         }
 
@@ -1163,6 +1172,11 @@ namespace Attendance
                 m.MdiParent = this;
                 m.Show();
             }
+        }
+
+        private void mnuConfigKeys_Click(object sender, EventArgs e)
+        {
+
         }
         
 

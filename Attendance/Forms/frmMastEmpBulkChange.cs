@@ -213,14 +213,30 @@ namespace Attendance.Forms
                                     sql += " GradCode = '" + tDesgCode.Trim() + "', ";
                                 }
 
-                                sql += "  Basic = '" + tBasic.ToString() + "', SPLALL = '" + tSplAll.ToString() + "', BAALL = '" + tBAAll.ToString() + "', ";
+                                if (tBasic > 0)
+                                {
+                                    sql += " Basic ='" + tBasic.ToString() + "', "; 
+                                }
+
+                                if (tBAAll > 0)
+                                {
+                                    sql += " BAALL = '" + tBAAll.ToString() + "', "; 
+                                }
+
+                                if(tSplAll > 0)
+                                {
+                                    sql += " SPLALL = '" + tSplAll.ToString() + "', ";
+                                }
+
+
+                                //sql += "  Basic = '" + tBasic.ToString() + "', SPLALL = '" + tSplAll.ToString() + "', BAALL = '" + tBAAll.ToString() + "', ";
                                 
                                 if (tLeftDt.Date != DateTime.MinValue.Date)
                                 {
                                     sql += " LeftDt ='" + tLeftDt.ToString("yyyy-MM-dd") + "', Active = 0 ,";
                                 }
 
-                                sql += "  UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where CompCode = '01' and EmpUnqID = '" + tEmpUnqID + "'";
+                                sql += "  UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where EmpUnqID = '" + tEmpUnqID + "'";
 
 
 
