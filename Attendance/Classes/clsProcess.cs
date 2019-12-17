@@ -932,11 +932,7 @@ namespace Attendance
                                     //}
                                     #endregion GateInOutProcess_CONT
 
-                                    #region EmpCostCodeRpt_Process
-                                        int result1 = 0;
-                                        string err2 = string.Empty;
-                                        EmpCostCodeRpt_Process(tEmpUnqID, tFromDt,out result1, out err2);
-                                    #endregion
+                                    
 
                                 }// AttdDataLoop
 
@@ -958,7 +954,17 @@ namespace Attendance
                         err = err + proerr;
                     }
 
+
+                    #region EmpCostCodeRpt_Process
+                    int result1 = 0;
+                    string err2 = string.Empty;
+                    EmpCostCodeRpt_Process(tEmpUnqID, tFromDt, out result1, out err2);
+                    #endregion
+
                     return;
+
+
+
 
                     #endregion AppProcess
 
