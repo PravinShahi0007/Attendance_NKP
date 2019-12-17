@@ -178,6 +178,71 @@ namespace Attendance
             }//using connection
         }
 
+
+        public void EmpCostCodeRpt_Process(string tEmpUnqID, DateTime tFromDt, out int result, out string err)
+        {
+            result = 0;
+            err = string.Empty;
+            string proerr = string.Empty;
+            
+            #region chk_primary
+            if (string.IsNullOrEmpty(tEmpUnqID))
+            {
+
+                proerr = "EmpUnqID required...";
+                err = proerr;
+                return;
+            }
+
+            if (tFromDt == DateTime.MinValue)
+            {
+                proerr = "Invalid From Date...";
+                err = proerr;
+                return;
+            }
+
+            #endregion chk_primary
+
+            //call main store proce.
+            using (SqlConnection cn = new SqlConnection(Utils.Helper.constr))
+            {
+                try
+                {
+
+                    cn.Open();
+                    using (SqlCommand cmd = new SqlCommand())
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "sp_rpt_CostCodeDailyEmpManPower";
+
+                        cmd.Parameters.AddWithValue("@pDate", tFromDt);
+                        cmd.Parameters.AddWithValue("@pEmpUnqId", tEmpUnqID);
+                        cmd.Parameters.Add("@result", SqlDbType.Int, 4);
+                        cmd.Parameters["@result"].Direction = ParameterDirection.Output;
+                        cmd.CommandTimeout = 0;
+                        cmd.ExecuteNonQuery();
+
+                        //get the output
+                        result = Convert.ToInt32(cmd.Parameters["@result"].Value.ToString());
+
+                        err = string.Empty;
+
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    err = ex.Message.ToString();
+                    result = 0;
+                }
+
+            }//using connection
+           
+
+           
+        }
+
         public void AttdProcess(string tEmpUnqID, DateTime tFromDt, DateTime tToDate, out int result,out string err)
         {
             result = 0;

@@ -1594,6 +1594,9 @@ namespace Attendance.Classes
                                 pro.LunchInOutProcess(tEmpUnqID, tFromDt, tToDt, out tres);
                             else if (ProType == "MESS")
                                 pro.LunchProcess(tEmpUnqID, tFromDt, tToDt, out tres);
+                            else if (ProType == "EMPCOSTCODERPT")
+                                pro.EmpCostCodeRpt_Process(tEmpUnqID, tFromDt,  out tres,out err);
+
                             else
                                 pro.AttdProcess(tEmpUnqID, tFromDt, tToDt, out tres, out err);
                             
