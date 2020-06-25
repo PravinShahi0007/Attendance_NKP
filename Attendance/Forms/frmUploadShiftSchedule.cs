@@ -573,19 +573,33 @@ namespace Attendance.Forms
                                 }//end if WO
                                 else
                                 {
-                                    try
+                                    LeavPos = false;
+                                    foreach (LeaveData t in leave)
                                     {
-                                        sql = "Delete from MastLeaveSchedule Where EmpUnqID = '" + Emp.EmpUnqID + "' " +
-                                                    " and tDate = '" + date.ToString("yyyy-MM-dd") + "' and SchLeave ='WO'";
-
-                                        cmd = new SqlCommand(sql,cn,trn);
-                                        cmd.ExecuteNonQuery();
+                                        //check if date is fall between leave posted
+                                        if (date >= t.FromDt && date <= t.ToDt)
+                                        {
+                                            LeavPos = true;
+                                            break;
+                                        }
                                     }
-                                    catch (Exception ex)
+
+                                    if (!LeavPos)
                                     {
-                                        dr["Remarks"] = dr["Remarks"].ToString() + Environment.NewLine + ex.ToString();
-                                        brkflg = true;
-                                        break;
+                                        try
+                                        {
+                                            sql = "Delete from MastLeaveSchedule Where EmpUnqID = '" + Emp.EmpUnqID + "' " +
+                                                        " and tDate = '" + date.ToString("yyyy-MM-dd") + "' and SchLeave ='WO'";
+
+                                            cmd = new SqlCommand(sql, cn, trn);
+                                            cmd.ExecuteNonQuery();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            dr["Remarks"] = dr["Remarks"].ToString() + Environment.NewLine + ex.ToString();
+                                            brkflg = true;
+                                            break;
+                                        }
                                     }
                                 }
 

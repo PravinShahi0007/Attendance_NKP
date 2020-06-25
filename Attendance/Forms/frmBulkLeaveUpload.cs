@@ -13,19 +13,20 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using DevExpress.XtraGrid.Columns;
 using Attendance.Classes;
-using System.Globalization;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace Attendance.Forms
 {
-    public partial class frmMastEmpBulkChange : DevExpress.XtraEditors.XtraForm
+    public partial class frmBulkLeaveUpload : DevExpress.XtraEditors.XtraForm
     {
         public string GRights = "XXXV";
-       
+        private int GFormID = 0;
 
 
         DataTable dt = new DataTable();
 
-        public frmMastEmpBulkChange()
+        public frmBulkLeaveUpload()
         {
             InitializeComponent();
             
@@ -80,13 +81,51 @@ namespace Attendance.Forms
         private string DataValidate(DataRow tdr)
         {
             string err = string.Empty;
-            clsEmp t = new clsEmp();
-            t.CompCode = "01";
-            t.EmpUnqID = tdr["EmpUnqID"].ToString();
-            if (!t.GetEmpDetails(t.CompCode,t.EmpUnqID))
-            {
-                err = err + "Invalid/InActive EmpUnqID..." + Environment.NewLine;
+            string sql = "Select Compcode,WrkGrp,EmpUnqID,Active from MastEmp where EmpUnqID='" + tdr["EmpUnqID"].ToString() + "'";
+            DataSet ds = Utils.Helper.GetData(sql,Utils.Helper.constr);
+            bool hasRows = ds.Tables.Cast<DataTable>().Any(table => table.Rows.Count != 0);
+            string tWrkGrp = string.Empty;
+            string tCompCode = string.Empty;
+            string tLeaveType = string.Empty;
+            string tUserID = tdr["PostID"].ToString();
+            tLeaveType = tdr["LeaveType"].ToString();
+
+            if (string.IsNullOrEmpty(tLeaveType)){
+                err += "Leave Type is required..";
             }
+
+            if (hasRows)
+            {
+                foreach (DataRow dr in ds.Tables[0].Rows)
+                {
+                    tWrkGrp = dr["WrkGrp"].ToString();
+                    tCompCode = dr["CompCode"].ToString();
+                    //check emplyee active status
+                    if (!Convert.ToBoolean(dr["Active"]))
+                    {
+                        err += "InActive Employee.";
+                        return err;
+                    }
+                }
+
+                if (tWrkGrp != tdr["WrkGrp"].ToString())
+                {
+                    err += "Invalid Supplied WrkGrp.";
+                }
+
+                //check leave type
+                int tcnt = 0;
+                sql = "Select Count(*) from MastLeave where CompCode ='" + tCompCode + "' And WrkGrp ='" + tWrkGrp + "' And LeaveTyp ='" + tLeaveType + "'";
+                int.TryParse(Utils.Helper.GetDescription(sql, Utils.Helper.constr),out tcnt);
+                if(tcnt <= 0)
+                {
+                    err += "Invalid Leave Type.";
+                }
+
+            }else{
+                err += "Employee does not exist.";
+            }
+            
             return err;
         }
 
@@ -123,155 +162,115 @@ namespace Attendance.Forms
                 dv.Sort = "EmpUnqID asc";
                 sortedDT = dv.ToTable();
 
+                int srno = 0;
+
                 using (SqlConnection con = new SqlConnection(Utils.Helper.constr))
                 {
-                    
+                    DateTime fdt;
+                    DateTime tdt;
+
                     con.Open();
                     foreach (DataRow dr in sortedDT.Rows)
                     {
                         string tEmpUnqID = dr["EmpUnqID"].ToString();
+                        srno += 1;        
+                        
+
+
+                        try
+                        {
+                            fdt = Convert.ToDateTime(dr["FromDate"]);
+                        }
+                        catch (Exception ex)
+                        {
+                            dr["Remarks"] = "FromDate Conversion failed...";
+                            continue; 
+                        }
+
+                        try
+                        {
+                            tdt = Convert.ToDateTime(dr["ToDate"]);
+                        }
+                        catch (Exception ex)
+                        {
+                            dr["Remarks"] = "ToDate Conversion failed...";
+                            continue;
+                        }
+
+                        if (tdt < fdt)
+                        {
+                            dr["Remarks"] = "Invalid Date Range";
+                            continue;
+                        }
+
+                        if((tdt - fdt).Days > 0 && !string.IsNullOrEmpty(dr["HalfDayFlg"].ToString().Trim()))
+                        {
+                            if (dr["HalfDayFlg"].ToString().Trim() == "0")
+                                dr["HalfDayFlg"] = 0;
+                            else if (dr["HalfDayFlg"].ToString().Trim() == "1")
+                                dr["HalfDayFlg"] = 1;
+                            else
+                                dr["HalfDayFlg"] = 0;
+
+                            if (dr["HalfDayFlg"].ToString() == "1")
+                            {
+                                dr["Remarks"] = "Multiple HalfDay not allowed";
+                                continue;
+                            }
+                            
+                        }
+
+                        if(string.IsNullOrEmpty(dr["HalfDayFlg"].ToString().Trim()))
+                        {
+                            dr["HalfDayFlg"] = 0;
+                        }
+
+                        if(!string.IsNullOrEmpty(dr["HalfDayFlg"].ToString().Trim()))
+                        {
+                            if(dr["HalfDayFlg"].ToString().Trim() == "0")
+                                dr["HalfDayFlg"] = 0;
+                            else if (dr["HalfDayFlg"].ToString().Trim() == "1")
+                                dr["HalfDayFlg"] = 1;
+                            else
+                                dr["HalfDayFlg"] = 0;
+                        }
+
 
                         string err = DataValidate(dr);
 
                         if (!string.IsNullOrEmpty(err))
                         {
                             dr["Remarks"] = err;
-                            continue;
+                            continue; 
                         }
 
-                        #region Chk_AllVals
-                        //check all values if all empty skip
-                        if (dr["CatCode"].ToString() == "" && dr["DesgCode"].ToString() == ""
-                            && dr["GradeCode"].ToString() == "" && dr["Basic"].ToString() == ""
-                            && dr["SPLALL"].ToString() == "" && dr["BAALL"].ToString() == ""
-                            && dr["LeftDt"].ToString() == "" && dr["OTFLG"].ToString() == "")
-                        {
-                            dr["Remarks"] = dr["Remarks"].ToString() + " Nothing to update...";
-                            continue;
-                        }
-                        #endregion
-                        string tCatCode = dr["CatCode"].ToString();
-                        string tDesgCode = dr["DesgCode"].ToString();
-                        string tGradeCode = dr["GradeCode"].ToString();
-                        double tSplAll = 0;
-                        double tBAAll = 0;
-                        DateTime tLeftDt = DateTime.MinValue;
-                        double tBasic = 0;
-                        string tOTFlg = dr["OTFLG"].ToString();
+                        AttdLeavePost tmpvar = new AttdLeavePost();
+                        tmpvar.AppID = srno;                       
+                        tmpvar.EmpUnqID = dr["EmpUnqID"].ToString().Trim();                       
+                        tmpvar.FromDate = Convert.ToDateTime(dr["FromDate"]);
+                        tmpvar.ToDate = Convert.ToDateTime(dr["ToDate"]);                        
+                        tmpvar.LeaveTyp = dr["LeaveType"].ToString().Trim().ToUpper();
+                        tmpvar.HalfDay = Convert.ToBoolean(dr["HalfDayFlg"]);
+                        tmpvar.AttdUser = (string.IsNullOrEmpty(dr["PostID"].ToString()) ? Utils.User.GUserID : dr["PostID"].ToString()).Trim();
+                        tmpvar.ERROR = string.Empty;
+                        tmpvar.Location = (string.IsNullOrEmpty(dr["Location"].ToString()) ? "NKP" : dr["Location"].ToString()).Trim();
+                        tmpvar.Remarks = "";
 
-                        try
-                        {
-                            double.TryParse(dr["Basic"].ToString(), out tBasic);
-                        }
-                        catch (Exception ex) { }
+                        bool outres = false;
+                        string tloc = (string.IsNullOrEmpty(dr["Location"].ToString()) ? "NKP" : dr["Location"].ToString()).Trim();
 
-                        try
-                        {
-                            double.TryParse(dr["SPLALL"].ToString(), out tSplAll);
-                        }
-                        catch (Exception ex) { }
+                        AttdLeavePost retObj = AttdPostLeave(tmpvar, tloc, out outres);
 
-                        try
-                        {
-                            double.TryParse(dr["BAALL"].ToString(), out tBAAll);
-                        }
-                        catch (Exception ex) { }
-
-                        if (!string.IsNullOrEmpty(dr["LeftDt"].ToString()))
-                        {
-                            if (!DateTime.TryParseExact(dr["LeftDt"].ToString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out tLeftDt))
-                            {
-                                dr["Remarks"] = "Date Conversion failed(yyyy-MM-dd)...";
-                                continue;
-                            }
+                        if(retObj.PostedFlg){
+                            dr["Remarks"] = "Leave Posted Sucussfully";
                         }
 
-
-                        #region Final_Update
-
-                        using (SqlCommand cmd = new SqlCommand())
-                        {
-                            try
-                            {
-
-                                cmd.Connection = con;
-                                cmd.CommandType = CommandType.Text;
-
-                                string sql = "Update MastEmp SET ";
-
-                                if (!String.IsNullOrEmpty(tCatCode.Trim()))
-                                {
-                                    sql += " CatCode = '" + tCatCode.Trim() + "', ";
-                                }
-
-                                if (!String.IsNullOrEmpty(tOTFlg.Trim()))
-                                {
-                                    if(tOTFlg.Trim() == "Y")                                    
-                                        sql += " OTFLG = 1, ";
-                                    else
-                                        sql += " OTFLG = 0, ";
-                                }
-
-                                if (!string.IsNullOrEmpty(tDesgCode.Trim()))
-                                {
-                                    sql += " DesgCode = '" + tDesgCode.Trim() + "', ";
-                                }
-
-                                if (!string.IsNullOrEmpty(tGradeCode.Trim()))
-                                {
-                                    sql += " GradCode = '" + tDesgCode.Trim() + "', ";
-                                }
-
-                                if (tBasic > 0)
-                                {
-                                    sql += " Basic ='" + tBasic.ToString() + "', "; 
-                                }
-
-                                if (tBAAll > 0)
-                                {
-                                    sql += " BAALL = '" + tBAAll.ToString() + "', "; 
-                                }
-
-                                if(tSplAll > 0)
-                                {
-                                    sql += " SPLALL = '" + tSplAll.ToString() + "', ";
-                                }
+                        if(!string.IsNullOrEmpty(retObj.ERROR)){
+                            dr["Remarks"] = dr["Remarks"].ToString().Trim() + retObj.ERROR;
+                        }
+                        
 
 
-                                //sql += "  Basic = '" + tBasic.ToString() + "', SPLALL = '" + tSplAll.ToString() + "', BAALL = '" + tBAAll.ToString() + "', ";
-                                
-                                if (tLeftDt.Date != DateTime.MinValue.Date)
-                                {
-                                    sql += " LeftDt ='" + tLeftDt.ToString("yyyy-MM-dd") + "', Active = 0 ,";
-                                }
-
-                                sql += "  UpdDt=GetDate(), UpdID = '" + Utils.User.GUserID + "' Where EmpUnqID = '" + tEmpUnqID + "'";
-
-
-
-                                string sql2 = "insert into MastEmpHistory " +
-                               " select 'Before Update Master Data, Action By " + Utils.User.GUserID + "', GetDate(), * from MastEmp where " +
-                               " EmpUnqID ='" + tEmpUnqID + "'";
-
-                                cmd.CommandText = sql2;
-                                cmd.CommandTimeout = 0;
-                                cmd.ExecuteNonQuery();
-
-                                cmd.CommandText = sql;
-                                cmd.CommandTimeout = 0;
-                                cmd.ExecuteNonQuery();
-
-                                dr["remarks"] = "Updated..";
-
-                            }
-                            catch (Exception ex)
-                            {
-                                dr["remarks"] = dr["remarks"].ToString() + ex.ToString();
-                                continue;
-                            }
-
-                        }//using sqlcommand
-                        #endregion
                     }//using foreach
 
                     con.Close();
@@ -289,6 +288,49 @@ namespace Attendance.Forms
 
             Cursor.Current = Cursors.Default;
         }
+
+
+        private AttdLeavePost AttdPostLeave(AttdLeavePost attdLeaveObj, string location, out bool output)
+        {
+            string baseuri = Utils.Helper.GetDescription("select AttdWebApiHost From MastNetwork", Utils.Helper.constr);
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(baseuri);
+
+                var content = new StringContent(JsonConvert.SerializeObject(attdLeaveObj),
+                    Encoding.UTF8, "application/json");
+
+                var responseTask = client.PostAsync("/api/leavepost", content);
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                output = result.IsSuccessStatusCode;
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<AttdLeavePost>();
+                    readTask.Wait();
+
+                    var attdLeave = readTask.Result;
+
+                    return attdLeave;
+
+                }
+                else
+                {
+                    var readTask = result.Content.ReadAsAsync<AttdLeavePost>();
+                    readTask.Wait();
+
+                    var attdLeave = readTask.Result;
+                    // Some error was there, return it without changing posting flags
+
+
+                    return attdLeave;
+                }
+            }
+
+        }
+
 
         private void btnPreview_Click(object sender, EventArgs e)
         {
@@ -336,7 +378,7 @@ namespace Attendance.Forms
 
             try
             {
-                string myexceldataquery = "select EmpUnqID,CatCode,GradeCode,DesgCode,OTFLG,Basic,SPLALL,BAALL,LeftDt, '' as Remarks from " + sheetname;
+                string myexceldataquery = "select WrkGrp,EmpUnqID,FromDate,ToDate,LeaveType,HalfDayFlg,PostID,Location,'' as Remarks from " + sheetname;
                 OleDbDataAdapter oledbda = new OleDbDataAdapter(myexceldataquery, oledbconn);
                 dt.Clear();
                 oledbda.Fill(dt);
@@ -439,9 +481,25 @@ namespace Attendance.Forms
             }
         }
 
-        private void frmMastEmpBulkChange_Load(object sender, EventArgs e)
+        private void frmBulkLeaveUpload_Load(object sender, EventArgs e)
         {
             GRights = Attendance.Classes.Globals.GetFormRights(this.Name);
+            
+            //string s = Utils.Helper.GetDescription("Select SanDayLimit from MastBCFlg", Utils.Helper.constr);
+            //if(string.IsNullOrEmpty(s)){
+            //    rSanDayLimit = 0;
+            //    MessageBox.Show("Please Contact to Admin : for some confuguraiton required.","Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+            //}else{
+            //    rSanDayLimit = Convert.ToInt32(s);
+
+            //    if(rSanDayLimit == 0)
+            //    {
+            //        MessageBox.Show("Please Contact to Admin : for some confuguraiton required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //    }
+            //}
+
+            GFormID = Convert.ToInt32(Utils.Helper.GetDescription("Select FormId from MastFrm Where FormName ='" + this.Name + "'",Utils.Helper.constr));
+
                 
             grd_view.DataSource = null;
             btnImport.Enabled = false;

@@ -142,28 +142,41 @@ namespace Attendance.Forms
                             //added 10/04/2019-Deloitee Auditor issue Mail Dated 02/04/2019
                             if (tdt.Date > curDate.Date)
                             {
-                                if (dr["InTime"].ToString() != "" || dr["OutTime"].ToString() != "")
+
+                                //MastSanctionException
+                                string tmpsql = "Select Count(*) from MastSanctionException where '" + tdt.ToString("yyyy-MM-dd") + "' between FromDt and Todate";
+                                string err2 = string.Empty;
+                                string tid = Utils.Helper.GetDescription(tmpsql, Utils.Helper.constr,out err2);
+                                if (string.IsNullOrEmpty(err2))
                                 {
-                                    dr["InTime"] = DBNull.Value;
-                                    dr["OutTime"] = DBNull.Value;
 
-                                    double t = 0;
-                                    if (double.TryParse(dr["TPAHours"].ToString(), out t))
+                                    if (Convert.ToInt32(tid) <= 0)
                                     {
-                                        if (t > 0)
+                                        if (dr["InTime"].ToString() != "" || dr["OutTime"].ToString() != "")
                                         {
-                                            dr["TPAHours"] = "";
-                                        }
-                                    }
+                                            dr["InTime"] = DBNull.Value;
+                                            dr["OutTime"] = DBNull.Value;
 
-                                    dr["Remarks"] = "Future date sanction (In Time/Out Time/TPA Hours) denied";
-                                    
+                                            double t = 0;
+                                            if (double.TryParse(dr["TPAHours"].ToString(), out t))
+                                            {
+                                                if (t > 0)
+                                                {
+                                                    dr["TPAHours"] = "";
+                                                }
+                                            }
+
+                                            dr["Remarks"] = "Future date sanction (In Time/Out Time/TPA Hours) denied";
+
+                                        }
+
+                                    }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            dr["Remarks"] = "Sanction Date Conversion failed...";
+                            dr["Remarks"] = "Sanction Date Conversion failed..." + ex.Message;
                             continue; 
                         }
                         

@@ -1176,7 +1176,24 @@ namespace Attendance
 
         private void mnuConfigKeys_Click(object sender, EventArgs e)
         {
+            Form t = Application.OpenForms["frmMastConfigKeys"];
+            if (t == null)
+            {
+                Attendance.Forms.frmMastConfigKeys m = new Attendance.Forms.frmMastConfigKeys();
+                m.MdiParent = this;
+                m.Show();
+            }
+        }
 
+        private void mnuBulkLeavePost_Click(object sender, EventArgs e)
+        {
+            Form t = Application.OpenForms["frmBulkLeaveUpload"];
+            if (t == null)
+            {
+                Attendance.Forms.frmBulkLeaveUpload m = new Attendance.Forms.frmBulkLeaveUpload();
+                m.MdiParent = this;
+                m.Show();
+            }
         }
         
 

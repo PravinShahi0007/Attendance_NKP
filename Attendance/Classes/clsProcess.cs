@@ -2189,7 +2189,7 @@ namespace Attendance
                     else if (otmin > 50 && otmin <= 59)
                     {
                         ot = othrs + 1;
-                    }
+                    }                    
 
                     if (ot >= 1)
                     {
@@ -2224,9 +2224,18 @@ namespace Attendance
                         }
                         #endregion
 
+                        if (ot >= 2)
+                        {
+                            drAttd["ConsOverTime"] = ot;
+                            drAttd["CalcOvertime"] = ot;
+                        }
+                        else
+                        {
+                            drAttd["ConsOverTime"] = 0;
+                            drAttd["CalcOvertime"] = 0;
+                        }
 
-                        drAttd["ConsOverTime"] = ot;
-                        drAttd["CalcOvertime"] = ot;
+                       
                     }
                     else
                     {
@@ -2261,12 +2270,14 @@ namespace Attendance
                             ot = othrs + 1;
                         }
 
+                        
+
                         if (ot >= 1)
                         {
                             ot = ot - ShiftBreak;
                         }
 
-                        if (ot >= 1)
+                        if (ot >= 2)
                         {
                             drAttd["ConsOverTime"] = ot;
                             drAttd["CalcOvertime"] = ot;
@@ -2305,12 +2316,13 @@ namespace Attendance
                             ot = othrs + 1;
                         }
 
+                       
                         if (ot >= 1)
                         {
                             ot = ot - ShiftBreak;
                         }
 
-                        if (ot >= 1)
+                        if (ot >= 2)
                         {
                             drAttd["ConsOverTime"] = ot;
                             drAttd["CalcOvertime"] = ot;
@@ -2336,18 +2348,18 @@ namespace Attendance
                 //27-08-2018 OverTime of ( CONT,CASUAL) min ot 2 hrs and maxot 4 hrs.
                 if ((Emp.WrkGrp == "CONT" || Emp.WrkGrp == "CASUAL") && drAttd["LeaveTyp"] == DBNull.Value  && Convert.ToInt32(drAttd["ConsOverTime"]) > 0)
                 {
-                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 2)
                     {
                         drAttd["ConsOverTime"] = 0;
                     }
-                    else if(Convert.ToInt32(drAttd["ConsOverTime"]) > 1 && Convert.ToInt32(drAttd["ConsOverTime"]) > 4)
+                    else if(Convert.ToInt32(drAttd["ConsOverTime"]) > 2 && Convert.ToInt32(drAttd["ConsOverTime"]) > 4)
                     {
                         drAttd["ConsOverTime"] = 4;
                     }
                 }
                 else
                 {
-                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 2)
                     {
                         drAttd["ConsOverTime"] = 0;
                     }

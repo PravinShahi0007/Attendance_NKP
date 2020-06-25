@@ -1,6 +1,6 @@
 ﻿namespace Attendance.Forms
 {
-    partial class frmMastEmpBulkChange
+    partial class frmBulkLeaveUpload
     {
         /// <summary>
         /// Required designer variable.
@@ -32,14 +32,10 @@
             this.groupControl2 = new DevExpress.XtraEditors.GroupControl();
             this.grd_view = new DevExpress.XtraGrid.GridControl();
             this.grd_view1 = new DevExpress.XtraGrid.Views.Grid.GridView();
-            this.EmpUnqID = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.CatCode = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.GradeCode = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.DesgCode = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.Basic = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.SPLALL = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.BAALL = new DevExpress.XtraGrid.Columns.GridColumn();
-            this.LeftDt = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colEmpUnqID = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colFromDate = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colToDate = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colLeaveType = new DevExpress.XtraGrid.Columns.GridColumn();
             this.Remarks = new DevExpress.XtraGrid.Columns.GridColumn();
             this.groupControl1 = new DevExpress.XtraEditors.GroupControl();
             this.btnExport = new System.Windows.Forms.Button();
@@ -47,7 +43,10 @@
             this.btnImport = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.txtBrowse = new System.Windows.Forms.TextBox();
-            this.colOTFLG = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colWrkGrp = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colHalfDayFlg = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colPostID = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colLocation = new DevExpress.XtraGrid.Columns.GridColumn();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.groupControl2)).BeginInit();
             this.groupControl2.SuspendLayout();
@@ -99,15 +98,14 @@
             // grd_view1
             // 
             this.grd_view1.Columns.AddRange(new DevExpress.XtraGrid.Columns.GridColumn[] {
-            this.EmpUnqID,
-            this.CatCode,
-            this.GradeCode,
-            this.DesgCode,
-            this.colOTFLG,
-            this.Basic,
-            this.SPLALL,
-            this.BAALL,
-            this.LeftDt,
+            this.colWrkGrp,
+            this.colEmpUnqID,
+            this.colFromDate,
+            this.colToDate,
+            this.colLeaveType,
+            this.colHalfDayFlg,
+            this.colPostID,
+            this.colLocation,
             this.Remarks});
             this.grd_view1.GridControl = this.grd_view;
             this.grd_view1.Name = "grd_view1";
@@ -139,91 +137,57 @@
             this.grd_view1.OptionsView.ShowGroupExpandCollapseButtons = false;
             this.grd_view1.OptionsView.ShowGroupPanel = false;
             // 
-            // EmpUnqID
+            // colEmpUnqID
             // 
-            this.EmpUnqID.Caption = "EmpUnqID";
-            this.EmpUnqID.FieldName = "EmpUnqID";
-            this.EmpUnqID.Name = "EmpUnqID";
-            this.EmpUnqID.OptionsColumn.AllowEdit = false;
-            this.EmpUnqID.OptionsColumn.ReadOnly = true;
-            this.EmpUnqID.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.EmpUnqID.Visible = true;
-            this.EmpUnqID.VisibleIndex = 0;
-            this.EmpUnqID.Width = 97;
+            this.colEmpUnqID.Caption = "EmpUnqID";
+            this.colEmpUnqID.FieldName = "EmpUnqID";
+            this.colEmpUnqID.Name = "colEmpUnqID";
+            this.colEmpUnqID.OptionsColumn.AllowEdit = false;
+            this.colEmpUnqID.OptionsColumn.AllowMove = false;
+            this.colEmpUnqID.OptionsColumn.ReadOnly = true;
+            this.colEmpUnqID.UnboundType = DevExpress.Data.UnboundColumnType.String;
+            this.colEmpUnqID.Visible = true;
+            this.colEmpUnqID.VisibleIndex = 1;
+            this.colEmpUnqID.Width = 97;
             // 
-            // CatCode
+            // colFromDate
             // 
-            this.CatCode.Caption = "CatCode";
-            this.CatCode.FieldName = "CatCode";
-            this.CatCode.Name = "CatCode";
-            this.CatCode.OptionsColumn.AllowEdit = false;
-            this.CatCode.OptionsColumn.ReadOnly = true;
-            this.CatCode.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.CatCode.Visible = true;
-            this.CatCode.VisibleIndex = 1;
-            this.CatCode.Width = 136;
+            this.colFromDate.Caption = "FromDate";
+            this.colFromDate.FieldName = "FromDate";
+            this.colFromDate.Name = "colFromDate";
+            this.colFromDate.OptionsColumn.AllowEdit = false;
+            this.colFromDate.OptionsColumn.AllowMove = false;
+            this.colFromDate.OptionsColumn.ReadOnly = true;
+            this.colFromDate.UnboundType = DevExpress.Data.UnboundColumnType.DateTime;
+            this.colFromDate.Visible = true;
+            this.colFromDate.VisibleIndex = 2;
+            this.colFromDate.Width = 136;
             // 
-            // GradeCode
+            // colToDate
             // 
-            this.GradeCode.Caption = "GradeCode";
-            this.GradeCode.FieldName = "GradeCode";
-            this.GradeCode.Name = "GradeCode";
-            this.GradeCode.OptionsColumn.AllowEdit = false;
-            this.GradeCode.OptionsColumn.ReadOnly = true;
-            this.GradeCode.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.GradeCode.Visible = true;
-            this.GradeCode.VisibleIndex = 2;
-            this.GradeCode.Width = 136;
+            this.colToDate.Caption = "ToDate";
+            this.colToDate.FieldName = "ToDate";
+            this.colToDate.Name = "colToDate";
+            this.colToDate.OptionsColumn.AllowEdit = false;
+            this.colToDate.OptionsColumn.AllowMove = false;
+            this.colToDate.OptionsColumn.ReadOnly = true;
+            this.colToDate.UnboundType = DevExpress.Data.UnboundColumnType.String;
+            this.colToDate.Visible = true;
+            this.colToDate.VisibleIndex = 3;
+            this.colToDate.Width = 136;
             // 
-            // DesgCode
+            // colLeaveType
             // 
-            this.DesgCode.Caption = "DesgCode";
-            this.DesgCode.FieldName = "DesgCode";
-            this.DesgCode.Name = "DesgCode";
-            this.DesgCode.OptionsColumn.AllowEdit = false;
-            this.DesgCode.OptionsColumn.ReadOnly = true;
-            this.DesgCode.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.DesgCode.Visible = true;
-            this.DesgCode.VisibleIndex = 3;
-            this.DesgCode.Width = 136;
-            // 
-            // Basic
-            // 
-            this.Basic.Caption = "Basic";
-            this.Basic.FieldName = "Basic";
-            this.Basic.Name = "Basic";
-            this.Basic.OptionsColumn.AllowEdit = false;
-            this.Basic.OptionsColumn.ReadOnly = true;
-            this.Basic.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.Basic.Visible = true;
-            this.Basic.VisibleIndex = 5;
-            this.Basic.Width = 80;
-            // 
-            // SPLALL
-            // 
-            this.SPLALL.Caption = "SPLALL";
-            this.SPLALL.FieldName = "SPLALL";
-            this.SPLALL.Name = "SPLALL";
-            this.SPLALL.Visible = true;
-            this.SPLALL.VisibleIndex = 6;
-            // 
-            // BAALL
-            // 
-            this.BAALL.Caption = "BAALL";
-            this.BAALL.FieldName = "BAALL";
-            this.BAALL.Name = "BAALL";
-            this.BAALL.Visible = true;
-            this.BAALL.VisibleIndex = 7;
-            // 
-            // LeftDt
-            // 
-            this.LeftDt.Caption = "LeftDt";
-            this.LeftDt.FieldName = "LeftDt";
-            this.LeftDt.Name = "LeftDt";
-            this.LeftDt.UnboundType = DevExpress.Data.UnboundColumnType.String;
-            this.LeftDt.Visible = true;
-            this.LeftDt.VisibleIndex = 8;
-            this.LeftDt.Width = 97;
+            this.colLeaveType.Caption = "LeaveType";
+            this.colLeaveType.FieldName = "LeaveType";
+            this.colLeaveType.Name = "colLeaveType";
+            this.colLeaveType.OptionsColumn.AllowEdit = false;
+            this.colLeaveType.OptionsColumn.AllowMove = false;
+            this.colLeaveType.OptionsColumn.ReadOnly = true;
+            this.colLeaveType.UnboundType = DevExpress.Data.UnboundColumnType.String;
+            this.colLeaveType.Visible = true;
+            this.colLeaveType.VisibleIndex = 4;
+            this.colLeaveType.Width = 136;
             // 
             // Remarks
             // 
@@ -231,10 +195,11 @@
             this.Remarks.FieldName = "Remarks";
             this.Remarks.Name = "Remarks";
             this.Remarks.OptionsColumn.AllowEdit = false;
+            this.Remarks.OptionsColumn.AllowMove = false;
             this.Remarks.OptionsColumn.ReadOnly = true;
             this.Remarks.UnboundType = DevExpress.Data.UnboundColumnType.String;
             this.Remarks.Visible = true;
-            this.Remarks.VisibleIndex = 9;
+            this.Remarks.VisibleIndex = 8;
             this.Remarks.Width = 270;
             // 
             // groupControl1
@@ -300,15 +265,39 @@
             this.txtBrowse.Size = new System.Drawing.Size(543, 23);
             this.txtBrowse.TabIndex = 0;
             // 
-            // colOTFLG
+            // colWrkGrp
             // 
-            this.colOTFLG.Caption = "OTFLG";
-            this.colOTFLG.FieldName = "OTFLG";
-            this.colOTFLG.Name = "colOTFLG";
-            this.colOTFLG.Visible = true;
-            this.colOTFLG.VisibleIndex = 4;
+            this.colWrkGrp.Caption = "WrkGrp";
+            this.colWrkGrp.FieldName = "WrkGrp";
+            this.colWrkGrp.Name = "colWrkGrp";
+            this.colWrkGrp.Visible = true;
+            this.colWrkGrp.VisibleIndex = 0;
             // 
-            // frmMastEmpBulkChange
+            // colHalfDayFlg
+            // 
+            this.colHalfDayFlg.Caption = "HalfDayFlg";
+            this.colHalfDayFlg.FieldName = "HalfDayFlg";
+            this.colHalfDayFlg.Name = "colHalfDayFlg";
+            this.colHalfDayFlg.Visible = true;
+            this.colHalfDayFlg.VisibleIndex = 5;
+            // 
+            // colPostID
+            // 
+            this.colPostID.Caption = "PostID";
+            this.colPostID.FieldName = "PostID";
+            this.colPostID.Name = "colPostID";
+            this.colPostID.Visible = true;
+            this.colPostID.VisibleIndex = 6;
+            // 
+            // colLocation
+            // 
+            this.colLocation.Caption = "Location";
+            this.colLocation.FieldName = "Location";
+            this.colLocation.Name = "colLocation";
+            this.colLocation.Visible = true;
+            this.colLocation.VisibleIndex = 7;
+            // 
+            // frmBulkLeaveUpload
             // 
             this.Appearance.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Appearance.Options.UseFont = true;
@@ -317,9 +306,9 @@
             this.ClientSize = new System.Drawing.Size(945, 602);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.Name = "frmMastEmpBulkChange";
-            this.Text = "Employee Bulk Change (CatCode/GradeCode/DesgCode/Basic)";
-            this.Load += new System.EventHandler(this.frmMastEmpBulkChange_Load);
+            this.Name = "frmBulkLeaveUpload";
+            this.Text = "Bulk Leave Posting";
+            this.Load += new System.EventHandler(this.frmBulkLeaveUpload_Load);
             this.tableLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.groupControl2)).EndInit();
             this.groupControl2.ResumeLayout(false);
@@ -343,16 +332,15 @@
         private System.Windows.Forms.TextBox txtBrowse;
         private DevExpress.XtraGrid.GridControl grd_view;
         private DevExpress.XtraGrid.Views.Grid.GridView grd_view1;
-        private DevExpress.XtraGrid.Columns.GridColumn EmpUnqID;
+        private DevExpress.XtraGrid.Columns.GridColumn colEmpUnqID;
         private System.Windows.Forms.Button btnExport;
-        private DevExpress.XtraGrid.Columns.GridColumn CatCode;
-        private DevExpress.XtraGrid.Columns.GridColumn GradeCode;
-        private DevExpress.XtraGrid.Columns.GridColumn DesgCode;
-        private DevExpress.XtraGrid.Columns.GridColumn Basic;
+        private DevExpress.XtraGrid.Columns.GridColumn colFromDate;
+        private DevExpress.XtraGrid.Columns.GridColumn colToDate;
+        private DevExpress.XtraGrid.Columns.GridColumn colLeaveType;
         private DevExpress.XtraGrid.Columns.GridColumn Remarks;
-        private DevExpress.XtraGrid.Columns.GridColumn SPLALL;
-        private DevExpress.XtraGrid.Columns.GridColumn BAALL;
-        private DevExpress.XtraGrid.Columns.GridColumn LeftDt;
-        private DevExpress.XtraGrid.Columns.GridColumn colOTFLG;
+        private DevExpress.XtraGrid.Columns.GridColumn colWrkGrp;
+        private DevExpress.XtraGrid.Columns.GridColumn colHalfDayFlg;
+        private DevExpress.XtraGrid.Columns.GridColumn colPostID;
+        private DevExpress.XtraGrid.Columns.GridColumn colLocation;
     }
 }

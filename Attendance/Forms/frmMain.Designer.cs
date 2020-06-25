@@ -124,6 +124,7 @@
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsUserDesc = new System.Windows.Forms.ToolStripStatusLabel();
             this.stsExtra = new System.Windows.Forms.ToolStripStatusLabel();
+            this.mnuBulkLeavePost = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -654,9 +655,10 @@
             this.mnuLeaveEntry,
             this.mnuLeaveBalUpload,
             this.mnuLeaveBalEntry,
-            this.mnuLeaveEntryLunch});
+            this.mnuLeaveEntryLunch,
+            this.mnuBulkLeavePost});
             this.mnuLeave.Name = "mnuLeave";
-            this.mnuLeave.Size = new System.Drawing.Size(136, 22);
+            this.mnuLeave.Size = new System.Drawing.Size(152, 22);
             this.mnuLeave.Text = "Leave";
             // 
             // mnuLeaveEntry
@@ -692,7 +694,7 @@
             this.mnuShift.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuShiftSchUpload});
             this.mnuShift.Name = "mnuShift";
-            this.mnuShift.Size = new System.Drawing.Size(136, 22);
+            this.mnuShift.Size = new System.Drawing.Size(152, 22);
             this.mnuShift.Text = "Shift";
             // 
             // mnuShiftSchUpload
@@ -710,7 +712,7 @@
             this.mnuShiftChange,
             this.mnuBulkSan});
             this.mnuSanction.Name = "mnuSanction";
-            this.mnuSanction.Size = new System.Drawing.Size(136, 22);
+            this.mnuSanction.Size = new System.Drawing.Size(152, 22);
             this.mnuSanction.Text = "Sanction";
             // 
             // mnuManualSan
@@ -744,7 +746,7 @@
             // mnuAutoMailSender
             // 
             this.mnuAutoMailSender.Name = "mnuAutoMailSender";
-            this.mnuAutoMailSender.Size = new System.Drawing.Size(136, 22);
+            this.mnuAutoMailSender.Size = new System.Drawing.Size(152, 22);
             this.mnuAutoMailSender.Text = "Mail Sender";
             this.mnuAutoMailSender.Click += new System.EventHandler(this.mnuAutoMailSender_Click);
             // 
@@ -892,6 +894,13 @@
             this.stsExtra.Name = "stsExtra";
             this.stsExtra.Size = new System.Drawing.Size(0, 17);
             // 
+            // mnuBulkLeavePost
+            // 
+            this.mnuBulkLeavePost.Name = "mnuBulkLeavePost";
+            this.mnuBulkLeavePost.Size = new System.Drawing.Size(210, 22);
+            this.mnuBulkLeavePost.Text = "Bulk Leave Posting";
+            this.mnuBulkLeavePost.Click += new System.EventHandler(this.mnuBulkLeavePost_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1013,6 +1022,7 @@
         private System.Windows.Forms.ToolStripMenuItem mnuPunchingBlock;
         private System.Windows.Forms.ToolStripMenuItem mnuReports;
         private System.Windows.Forms.ToolStripMenuItem mnuConfigKeys;
+        private System.Windows.Forms.ToolStripMenuItem mnuBulkLeavePost;
 
 
     }

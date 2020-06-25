@@ -2115,8 +2115,8 @@ namespace Attendance.Classes
                     {
                         const int chunkSize = 2 * 1024; // 2KB
 
-                        var inputFiles = Directory.GetFiles(Errfilepath)
-                            .Where(x => new FileInfo(x).CreationTime.Date == DateTime.Today.Date);
+                        var inputFiles = Directory.GetFiles(Errfilepath,"*.txt")
+                            .Where(x => new FileInfo(x).CreationTime.Date == DateTime.Today.Date );
 
                         string allErrFileName = DateTime.Now.Date.ToString("yyyyMMdd") + "Error_Logs.txt";
                         
