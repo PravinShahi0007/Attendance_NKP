@@ -74,6 +74,7 @@
             this.btnRegister = new DevExpress.XtraEditors.SimpleButton();
             this.btnSelAll = new DevExpress.XtraEditors.SimpleButton();
             this.grpButtons2 = new System.Windows.Forms.GroupBox();
+            this.btnReplaceEmp = new DevExpress.XtraEditors.SimpleButton();
             this.btnDevInfo = new DevExpress.XtraEditors.SimpleButton();
             this.btnSetTime = new DevExpress.XtraEditors.SimpleButton();
             this.btnUnlock = new DevExpress.XtraEditors.SimpleButton();
@@ -84,7 +85,7 @@
             this.gv_avbl = new DevExpress.XtraGrid.Views.Grid.GridView();
             this.SEL = new DevExpress.XtraGrid.Columns.GridColumn();
             this.repositoryItemCheckEdit1 = new DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit();
-            this.Location = new DevExpress.XtraGrid.Columns.GridColumn();
+            this.colLocation = new DevExpress.XtraGrid.Columns.GridColumn();
             this.MachineIP = new DevExpress.XtraGrid.Columns.GridColumn();
             this.MachineNo = new DevExpress.XtraGrid.Columns.GridColumn();
             this.Remarks = new DevExpress.XtraGrid.Columns.GridColumn();
@@ -141,7 +142,6 @@
             this.grpButtons11 = new System.Windows.Forms.GroupBox();
             this.grd_Upload = new DevExpress.XtraGrid.GridControl();
             this.gv_Upload = new DevExpress.XtraGrid.Views.Grid.GridView();
-            this.btnReplaceEmp = new DevExpress.XtraEditors.SimpleButton();
             this.tblp.SuspendLayout();
             this.grpButtons12.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.cmbListMachine1.Properties)).BeginInit();
@@ -781,6 +781,18 @@
             this.grpButtons2.TabIndex = 1;
             this.grpButtons2.TabStop = false;
             // 
+            // btnReplaceEmp
+            // 
+            this.btnReplaceEmp.Appearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnReplaceEmp.Appearance.Options.UseFont = true;
+            this.btnReplaceEmp.Location = new System.Drawing.Point(662, 10);
+            this.btnReplaceEmp.Name = "btnReplaceEmp";
+            this.btnReplaceEmp.Size = new System.Drawing.Size(111, 27);
+            this.btnReplaceEmp.TabIndex = 15;
+            this.btnReplaceEmp.Text = "Replace New Code";
+            this.btnReplaceEmp.Visible = false;
+            this.btnReplaceEmp.Click += new System.EventHandler(this.btnReplaceEmp_Click);
+            // 
             // btnDevInfo
             // 
             this.btnDevInfo.Appearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -865,7 +877,7 @@
             // 
             this.gv_avbl.Columns.AddRange(new DevExpress.XtraGrid.Columns.GridColumn[] {
             this.SEL,
-            this.Location,
+            this.colLocation,
             this.MachineIP,
             this.MachineNo,
             this.Remarks,
@@ -933,25 +945,25 @@
             this.repositoryItemCheckEdit1.Name = "repositoryItemCheckEdit1";
             this.repositoryItemCheckEdit1.ValueGrayed = false;
             // 
-            // Location
+            // colLocation
             // 
-            this.Location.AppearanceHeader.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Location.AppearanceHeader.Options.UseFont = true;
-            this.Location.AppearanceHeader.Options.UseTextOptions = true;
-            this.Location.AppearanceHeader.TextOptions.HAlignment = DevExpress.Utils.HorzAlignment.Center;
-            this.Location.AppearanceHeader.TextOptions.VAlignment = DevExpress.Utils.VertAlignment.Center;
-            this.Location.Caption = "Location";
-            this.Location.FieldName = "MachineDesc";
-            this.Location.Name = "Location";
-            this.Location.OptionsColumn.AllowEdit = false;
-            this.Location.OptionsColumn.AllowGroup = DevExpress.Utils.DefaultBoolean.False;
-            this.Location.OptionsColumn.AllowMerge = DevExpress.Utils.DefaultBoolean.False;
-            this.Location.OptionsColumn.AllowMove = false;
-            this.Location.OptionsColumn.FixedWidth = true;
-            this.Location.OptionsColumn.ReadOnly = true;
-            this.Location.Visible = true;
-            this.Location.VisibleIndex = 1;
-            this.Location.Width = 63;
+            this.colLocation.AppearanceHeader.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.colLocation.AppearanceHeader.Options.UseFont = true;
+            this.colLocation.AppearanceHeader.Options.UseTextOptions = true;
+            this.colLocation.AppearanceHeader.TextOptions.HAlignment = DevExpress.Utils.HorzAlignment.Center;
+            this.colLocation.AppearanceHeader.TextOptions.VAlignment = DevExpress.Utils.VertAlignment.Center;
+            this.colLocation.Caption = "Location";
+            this.colLocation.FieldName = "MachineDesc";
+            this.colLocation.Name = "colLocation";
+            this.colLocation.OptionsColumn.AllowEdit = false;
+            this.colLocation.OptionsColumn.AllowGroup = DevExpress.Utils.DefaultBoolean.False;
+            this.colLocation.OptionsColumn.AllowMerge = DevExpress.Utils.DefaultBoolean.False;
+            this.colLocation.OptionsColumn.AllowMove = false;
+            this.colLocation.OptionsColumn.FixedWidth = true;
+            this.colLocation.OptionsColumn.ReadOnly = true;
+            this.colLocation.Visible = true;
+            this.colLocation.VisibleIndex = 1;
+            this.colLocation.Width = 63;
             // 
             // MachineIP
             // 
@@ -1374,7 +1386,7 @@
             // 
             this.tbp_Misc.Controls.Add(this.tblp_Misc);
             this.tbp_Misc.Name = "tbp_Misc";
-            this.tbp_Misc.Size = new System.Drawing.Size(656, 467);
+            this.tbp_Misc.Size = new System.Drawing.Size(808, 467);
             this.tbp_Misc.Text = "Misc";
             // 
             // tblp_Misc
@@ -1394,7 +1406,7 @@
             this.tblp_Misc.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tblp_Misc.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tblp_Misc.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tblp_Misc.Size = new System.Drawing.Size(656, 467);
+            this.tblp_Misc.Size = new System.Drawing.Size(808, 467);
             this.tblp_Misc.TabIndex = 2;
             // 
             // grpButtons9
@@ -1403,7 +1415,7 @@
             this.grpButtons9.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons9.Location = new System.Drawing.Point(3, 351);
             this.grpButtons9.Name = "grpButtons9";
-            this.grpButtons9.Size = new System.Drawing.Size(650, 113);
+            this.grpButtons9.Size = new System.Drawing.Size(802, 113);
             this.grpButtons9.TabIndex = 3;
             this.grpButtons9.TabStop = false;
             // 
@@ -1418,7 +1430,7 @@
             this.grpButtons6.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons6.Location = new System.Drawing.Point(3, 3);
             this.grpButtons6.Name = "grpButtons6";
-            this.grpButtons6.Size = new System.Drawing.Size(650, 110);
+            this.grpButtons6.Size = new System.Drawing.Size(802, 110);
             this.grpButtons6.TabIndex = 0;
             this.grpButtons6.TabStop = false;
             this.grpButtons6.Text = "Copy Users From One Machine to Other";
@@ -1479,7 +1491,7 @@
             this.grpButtons8.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons8.Location = new System.Drawing.Point(3, 235);
             this.grpButtons8.Name = "grpButtons8";
-            this.grpButtons8.Size = new System.Drawing.Size(650, 110);
+            this.grpButtons8.Size = new System.Drawing.Size(802, 110);
             this.grpButtons8.TabIndex = 1;
             this.grpButtons8.TabStop = false;
             // 
@@ -1489,7 +1501,7 @@
             this.grpButtons7.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons7.Location = new System.Drawing.Point(3, 119);
             this.grpButtons7.Name = "grpButtons7";
-            this.grpButtons7.Size = new System.Drawing.Size(650, 110);
+            this.grpButtons7.Size = new System.Drawing.Size(802, 110);
             this.grpButtons7.TabIndex = 2;
             this.grpButtons7.TabStop = false;
             // 
@@ -1497,7 +1509,7 @@
             // 
             this.tbp_Upload.Controls.Add(this.tblp_Upload);
             this.tbp_Upload.Name = "tbp_Upload";
-            this.tbp_Upload.Size = new System.Drawing.Size(656, 467);
+            this.tbp_Upload.Size = new System.Drawing.Size(808, 467);
             this.tbp_Upload.Text = "Upload";
             // 
             // tblp_Upload
@@ -1512,7 +1524,7 @@
             this.tblp_Upload.RowCount = 2;
             this.tblp_Upload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 90F));
             this.tblp_Upload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tblp_Upload.Size = new System.Drawing.Size(656, 467);
+            this.tblp_Upload.Size = new System.Drawing.Size(808, 467);
             this.tblp_Upload.TabIndex = 1;
             // 
             // grpButtons10
@@ -1530,7 +1542,7 @@
             this.grpButtons10.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons10.Location = new System.Drawing.Point(3, 3);
             this.grpButtons10.Name = "grpButtons10";
-            this.grpButtons10.Size = new System.Drawing.Size(650, 84);
+            this.grpButtons10.Size = new System.Drawing.Size(802, 84);
             this.grpButtons10.TabIndex = 3;
             this.grpButtons10.Text = "Import File";
             // 
@@ -1617,7 +1629,7 @@
             this.grpButtons11.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpButtons11.Location = new System.Drawing.Point(3, 93);
             this.grpButtons11.Name = "grpButtons11";
-            this.grpButtons11.Size = new System.Drawing.Size(650, 371);
+            this.grpButtons11.Size = new System.Drawing.Size(802, 371);
             this.grpButtons11.TabIndex = 2;
             this.grpButtons11.TabStop = false;
             // 
@@ -1627,7 +1639,7 @@
             this.grd_Upload.Location = new System.Drawing.Point(3, 18);
             this.grd_Upload.MainView = this.gv_Upload;
             this.grd_Upload.Name = "grd_Upload";
-            this.grd_Upload.Size = new System.Drawing.Size(644, 350);
+            this.grd_Upload.Size = new System.Drawing.Size(796, 350);
             this.grd_Upload.TabIndex = 3;
             this.grd_Upload.ViewCollection.AddRange(new DevExpress.XtraGrid.Views.Base.BaseView[] {
             this.gv_Upload});
@@ -1663,18 +1675,6 @@
             this.gv_Upload.OptionsView.ShowDetailButtons = false;
             this.gv_Upload.OptionsView.ShowGroupExpandCollapseButtons = false;
             this.gv_Upload.OptionsView.ShowGroupPanel = false;
-            // 
-            // btnReplaceEmp
-            // 
-            this.btnReplaceEmp.Appearance.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnReplaceEmp.Appearance.Options.UseFont = true;
-            this.btnReplaceEmp.Location = new System.Drawing.Point(662, 10);
-            this.btnReplaceEmp.Name = "btnReplaceEmp";
-            this.btnReplaceEmp.Size = new System.Drawing.Size(111, 27);
-            this.btnReplaceEmp.TabIndex = 15;
-            this.btnReplaceEmp.Text = "Replace New Code";
-            this.btnReplaceEmp.Visible = false;
-            this.btnReplaceEmp.Click += new System.EventHandler(this.btnReplaceEmp_Click);
             // 
             // frmMastUserManagement
             // 
@@ -1804,7 +1804,7 @@
         private DevExpress.XtraGrid.Views.Grid.GridView gv_avbl;
         private DevExpress.XtraGrid.Columns.GridColumn SEL;
         private DevExpress.XtraEditors.Repository.RepositoryItemCheckEdit repositoryItemCheckEdit1;
-        private DevExpress.XtraGrid.Columns.GridColumn Location;
+        private DevExpress.XtraGrid.Columns.GridColumn colLocation;
         private DevExpress.XtraGrid.Columns.GridColumn MachineIP;
         private DevExpress.XtraGrid.Columns.GridColumn MachineNo;
         private DevExpress.XtraGrid.Columns.GridColumn AutoClear;

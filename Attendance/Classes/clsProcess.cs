@@ -2265,7 +2265,8 @@ namespace Attendance
                         {
                             ot = othrs + 0.5;
                         }
-                        else if (otmin > 50 && otmin <= 59)
+                        else 
+                        if (otmin > 50 && otmin <= 59)
                         {
                             ot = othrs + 1;
                         }
@@ -2311,7 +2312,8 @@ namespace Attendance
                         {
                             ot = othrs + 0.5;
                         }
-                        else if (otmin > 50 && otmin <= 59)
+                        else 
+                        if (otmin > 50 && otmin <= 59)
                         {
                             ot = othrs + 1;
                         }
@@ -2345,10 +2347,10 @@ namespace Attendance
                
                 daAttdData.Update(dsAttdData, "AttdData");
 
-                //27-08-2018 OverTime of ( CONT,CASUAL) min ot 2 hrs and maxot 4 hrs.
-                if ((Emp.WrkGrp == "CONT" || Emp.WrkGrp == "CASUAL") && drAttd["LeaveTyp"] == DBNull.Value  && Convert.ToInt32(drAttd["ConsOverTime"]) > 0)
+                //25-06-2020 OverTime of ( all workgrp) min ot 2 hrs and maxot 4 hrs. as per arun mail
+                if ( drAttd["LeaveTyp"] == DBNull.Value  && Convert.ToInt32(drAttd["ConsOverTime"]) > 0)
                 {
-                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 2)
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
                     {
                         drAttd["ConsOverTime"] = 0;
                     }
@@ -2359,7 +2361,7 @@ namespace Attendance
                 }
                 else
                 {
-                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 2)
+                    if (Convert.ToInt32(drAttd["ConsOverTime"]) <= 1)
                     {
                         drAttd["ConsOverTime"] = 0;
                     }
